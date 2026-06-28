@@ -34,6 +34,20 @@ The guiding product constraint is:
 Reality -> Analysis -> Explanation
 ```
 
+## Visual design intent
+
+The Digital Twin is the canvas. Every feature is another lens over the same visible home model.
+
+The prototype should be judged by whether the user still feels inside the Twin when they move between Home, Explore, Rooms, Components, Understanding, Conversation, Timeline, and Documents.
+
+There are three primary visual objects:
+
+- The House: rooms, systems, evidence, and uncertainty.
+- The Selected Thing: boiler, radiator, room, loft, pipework, document, or event.
+- The Relationship: why something happens, how it connects, and what evidence supports it.
+
+Screens should not feel like documentation pages. The model should communicate understanding before the user reads supporting text.
+
 ## Relationship to production repositories
 
 Nothing here is authoritative. Nothing here changes production architecture or contracts. No code, data shape, UI pattern, or workflow should be copied into production without deliberate implementation work later.
