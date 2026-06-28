@@ -3,22 +3,27 @@ import { navItems, twin } from "./data.js";
 const app = document.querySelector("#app");
 
 function route() {
-  return window.location.pathname === "/" ? "/landing" : window.location.pathname;
+  const hashRoute = window.location.hash.replace(/^#/, "");
+  return hashRoute.startsWith("/") ? hashRoute : "/landing";
 }
 
 function navigate(path) {
-  history.pushState({}, "", path);
+  window.location.hash = path;
   render();
 }
 
-window.addEventListener("popstate", render);
+window.addEventListener("hashchange", render);
 
 document.addEventListener("click", (event) => {
   const link = event.target.closest("[data-link]");
   if (!link) return;
   event.preventDefault();
-  navigate(link.getAttribute("href"));
+  navigate(link.dataset.route);
 });
+
+function link(path) {
+  return `href="#${path}" data-route="${path}" data-link`;
+}
 
 function shell(content, options = {}) {
   const current = route();
@@ -27,13 +32,13 @@ function shell(content, options = {}) {
     <div class="app-shell">
       ${showNav ? `
       <aside class="sidebar">
-        <a class="brand" href="/home" data-link>
+        <a class="brand" ${link("/home")}>
           <span class="brand-mark"></span>
           <span>Daedalus</span>
         </a>
         <nav>
           ${navItems.map(([label, href]) => `
-            <a href="${href}" data-link class="${current.startsWith(href) ? "active" : ""}">${label}</a>
+            <a ${link(href)} class="${current.startsWith(href) ? "active" : ""}">${label}</a>
           `).join("")}
         </nav>
         <div class="twin-chip">
@@ -89,7 +94,7 @@ function houseArt(interactive = false) {
         <circle cx="421" cy="456" r="7" fill="#27343c"/><circle cx="651" cy="347" r="7" fill="#27343c"/><circle cx="512" cy="239" r="7" fill="#27343c"/>
       </svg>
       ${rooms.map(([name, slug, left, top]) => `
-        <a class="room-pin" href="/rooms/${slug}" data-link style="left:${left}%;top:${top}%">
+        <a class="room-pin" ${link(`/rooms/${slug}`)} style="left:${left}%;top:${top}%">
           <span></span>${name}
         </a>
       `).join("")}
@@ -111,7 +116,7 @@ function landing() {
             ${stat("observed components", twin.property.components)}
             ${stat("evidence items", twin.property.evidence)}
           </div>
-          <a class="primary-action" href="/home" data-link>Continue into the Twin</a>
+          <a class="primary-action" ${link("/home")}>Continue into the Twin</a>
         </div>
         ${houseArt(false)}
       </div>
@@ -133,7 +138,7 @@ function home() {
       <article class="wide panel">
         <h2>Things worth understanding</h2>
         <div class="understand-strip">
-          ${twin.understanding.slice(0, 4).map(item => `<a href="/understanding/${item.slug}" data-link>${item.title}</a>`).join("")}
+          ${twin.understanding.slice(0, 4).map(item => `<a ${link(`/understanding/${item.slug}`)}>${item.title}</a>`).join("")}
         </div>
       </article>
       <article class="panel">
@@ -147,22 +152,22 @@ function home() {
       <article class="panel">
         <h2>Recent survey</h2>
         <p>June 2026 guided survey connected rooms, components, photos, documents, and homeowner observations into a first working Twin.</p>
-        <a href="/documents" data-link>Open evidence</a>
+        <a ${link("/documents")}>Open evidence</a>
       </article>
       <article class="panel">
         <h2>Timeline preview</h2>
         <p><strong>2026</strong> Digital Twin created from 186 linked observations.</p>
-        <a href="/timeline" data-link>View history</a>
+        <a ${link("/timeline")}>View history</a>
       </article>
       <article class="panel">
         <h2>Conversation preview</h2>
         <p>"Why is the kitchen colder?"</p>
-        <a href="/conversation" data-link>Ask the Twin</a>
+        <a ${link("/conversation")}>Ask the Twin</a>
       </article>
       <article class="panel">
         <h2>Documents preview</h2>
         <p>Evidence Pack, survey report, certificates, manuals, invoices, plans.</p>
-        <a href="/documents" data-link>Browse documents</a>
+        <a ${link("/documents")}>Browse documents</a>
       </article>
     </section>
   `);
@@ -181,11 +186,11 @@ function explore() {
       ${houseArt(true)}
       <div class="panel system-list">
         <h2>Systems</h2>
-        <a href="/components/boiler" data-link>Heating source</a>
-        <a href="/understanding/hot-water" data-link>Hot water path</a>
-        <a href="/understanding/ventilation" data-link>Ventilation</a>
-        <a href="/understanding/building-fabric" data-link>Building fabric</a>
-        <a href="/components/radiator" data-link>Kitchen radiator</a>
+        <a ${link("/components/boiler")}>Heating source</a>
+        <a ${link("/understanding/hot-water")}>Hot water path</a>
+        <a ${link("/understanding/ventilation")}>Ventilation</a>
+        <a ${link("/understanding/building-fabric")}>Building fabric</a>
+        <a ${link("/components/radiator")}>Kitchen radiator</a>
       </div>
     </section>
   `);
@@ -195,7 +200,7 @@ function room(slug) {
   const room = twin.rooms.find((item) => item.slug === slug) || twin.rooms[0];
   return shell(`
     <section class="detail-hero">
-      <a class="back-link" href="/explore" data-link>Explore</a>
+      <a class="back-link" ${link("/explore")}>Explore</a>
       <p class="eyebrow">Room</p>
       <h1>${room.name}</h1>
       <p class="lede">${room.insight}</p>
@@ -207,7 +212,7 @@ function room(slug) {
         <div class="component-list">
           ${room.components.map(component => {
             const path = component.toLowerCase().includes("boiler") ? "/components/boiler" : component.toLowerCase().includes("radiator") ? "/components/radiator" : "/explore";
-            return `<a href="${path}" data-link>${component}<span>${room.name}</span></a>`;
+            return `<a ${link(path)}>${component}<span>${room.name}</span></a>`;
           }).join("")}
         </div>
       </article>
@@ -223,7 +228,7 @@ function component(slug) {
   const item = twin.components[slug] || twin.components.boiler;
   return shell(`
     <section class="detail-hero">
-      <a class="back-link" href="/explore" data-link>Explore</a>
+      <a class="back-link" ${link("/explore")}>Explore</a>
       <p class="eyebrow">Component</p>
       <h1>${item.name}</h1>
       <p class="lede">${item.explanation}</p>
@@ -249,7 +254,7 @@ function component(slug) {
       </article>
       <article class="panel wide">
         <h2>Documents and photos</h2>
-        <div class="document-list">${item.documents.map(doc => `<a href="/documents" data-link>${doc}</a>`).join("")}</div>
+        <div class="document-list">${item.documents.map(doc => `<a ${link("/documents")}>${doc}</a>`).join("")}</div>
       </article>
     </section>
   `);
@@ -267,7 +272,7 @@ function understanding(slug) {
     </section>
     <section class="card-grid">
       ${twin.understanding.map(item => `
-        <a class="knowledge-card ${selected?.slug === item.slug ? "selected" : ""}" href="/understanding/${item.slug}" data-link>
+        <a class="knowledge-card ${selected?.slug === item.slug ? "selected" : ""}" ${link(`/understanding/${item.slug}`)}>
           <span>Explanation</span>
           <h2>${item.title}</h2>
           <p>${item.body}</p>
@@ -347,7 +352,7 @@ function notFound() {
         <p class="eyebrow">Prototype route</p>
         <h1>This part of the Twin is still being shaped.</h1>
         <p class="lede">Return to the home overview or explore the current rooms and components.</p>
-        <a class="primary-action" href="/home" data-link>Go home</a>
+        <a class="primary-action" ${link("/home")}>Go home</a>
       </div>
     </section>
   `);

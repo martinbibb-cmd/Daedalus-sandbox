@@ -4,6 +4,10 @@ Daedalus Sandbox is a product experience prototype. It is not production softwar
 
 The purpose of this repository is to explore what Daedalus Main might feel like immediately after a new Digital Twin has been created. The prototype is intentionally opinionated, visual, and interactive so it can be used in conversations with investors, customers, engineers, British Gas leadership, and manufacturers.
 
+## Live demo
+
+https://martinbibb-cmd.github.io/Daedalus-sandbox/
+
 ## Run locally
 
 ```bash
