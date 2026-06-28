@@ -38,15 +38,17 @@ Reality -> Analysis -> Explanation
 
 The Digital Twin is the canvas. Every feature is another lens over the same visible home model.
 
-The prototype should be judged by whether the user still feels inside the Twin when they move between Home, Explore, Rooms, Components, Understanding, Conversation, Timeline, and Documents.
+The core product model is:
 
-There are three primary visual objects:
+- The House: rooms, structure, insulation, windows, orientation, location, and fabric.
+- The Systems: heating, hot water, ventilation, cooling, electrical, energy production, energy storage, and water.
+- The Home: people, room use, routines, comfort needs, priorities, children, accessibility, pets, future plans, and what matters to the household.
 
-- The House: rooms, systems, evidence, and uncertainty.
-- The Selected Thing: boiler, radiator, room, loft, pipework, document, or event.
-- The Relationship: why something happens, how it connects, and what evidence supports it.
+Daedalus is different because it models how these three interact. The user should understand that visually before reading supporting copy.
 
-Screens should not feel like documentation pages. The model should communicate understanding before the user reads supporting text.
+Home, Explore, Rooms, Components, Understanding, Conversation, Timeline, and Documents should not feel like disconnected pages. They should feel like lenses over the same Twin.
+
+Daedalus does not recommend what to do in this sandbox. It explains what a change would affect and why.
 
 ## Relationship to production repositories
 
@@ -54,17 +56,17 @@ Nothing here is authoritative. Nothing here changes production architecture or c
 
 Treat this as the Apple Keynote demo before building the operating system: useful for direction, storytelling, and product judgement, not as a source of implementation truth.
 
-## Prototype structure
+## Prototype lenses
 
-- `/landing` shows the moment after a property has been created.
-- `/home` introduces the Digital Twin overview.
-- `/explore` provides an interactive house model.
-- `/rooms/:room` shows room-level observations, confidence, evidence, and unknowns.
-- `/components/:component` explains components such as the boiler through identity, location, evidence, relationships, documents, and timeline.
-- `/understanding` explains home behaviour through evidence-led cards.
-- `/conversation` demonstrates Digital Twin answers grounded in observed evidence.
-- `/timeline` shows the evolving history of the home.
-- `/documents` presents documents as evidence attached to the Twin.
+- `/landing` introduces House + Systems + Home as connected layers.
+- `/home` shows all three layers interacting on the Twin canvas.
+- `/explore` focuses the House layer.
+- `/rooms/:room` selects a room while keeping the Twin visible.
+- `/components/:component` focuses a system element and what it affects.
+- `/understanding` explains behaviour through House + Systems + Home diagrams.
+- `/conversation` keeps the Twin visible beside evidence-grounded answers.
+- `/timeline` shows changes attached to the Twin.
+- `/documents` shows evidence attached to the model, not a file list.
 
 ## Editing
 
