@@ -182,6 +182,11 @@ p { color: var(--muted); line-height: 1.45; }
   gap: 10px;
 }
 
+.opening-copy p {
+  max-width: 720px;
+  font-size: 20px;
+}
+
 .three-layer-stage {
   min-height: 520px;
   display: grid;
@@ -250,6 +255,31 @@ p { color: var(--muted); line-height: 1.45; }
 .layer-card.house .layer-orb i { background: radial-gradient(circle, var(--house), rgba(95,183,197,.18)); }
 .layer-card.systems .layer-orb i { background: radial-gradient(circle, var(--systems), rgba(102,127,224,.18)); }
 .layer-card.home .layer-orb i { background: radial-gradient(circle, var(--home), rgba(104,169,130,.18)); }
+
+.manifesto-band {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.manifesto-band span {
+  min-height: 82px;
+  padding: 16px;
+  display: grid;
+  gap: 5px;
+  align-content: center;
+  border-radius: 8px;
+  background: rgba(255,255,255,.58);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,.74);
+  backdrop-filter: blur(22px);
+  color: var(--muted);
+  font-weight: 720;
+}
+
+.manifesto-band strong {
+  color: var(--ink);
+  font-size: 18px;
+}
 
 .home-canvas,
 .lens-layout,
@@ -750,6 +780,7 @@ p { color: var(--muted); line-height: 1.45; }
 
 @media (max-width: 1120px) {
   .layer-stack,
+  .manifesto-band,
   .scenario-strip,
   .lens-layout,
   .conversation-canvas,

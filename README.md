@@ -1,5 +1,15 @@
 # Daedalus Sandbox
 
+## Reality First
+
+Your home is made of three things.
+
+- The House: the physical building.
+- The Systems: the things that make the House work.
+- The Home: the people and lived context.
+
+Daedalus is a Digital Twin designed to understand all three.
+
 Daedalus Sandbox is a product experience prototype. It is not production software and it is not an architectural reference.
 
 The purpose of this repository is to explore what Daedalus Main might feel like immediately after a new Digital Twin has been created. The prototype is intentionally opinionated, visual, and interactive so it can be used in conversations with investors, customers, engineers, British Gas leadership, and manufacturers.
@@ -49,6 +59,8 @@ Daedalus is different because it models how these three interact. The user shoul
 Home, Explore, Rooms, Components, Understanding, Conversation, Timeline, and Documents should not feel like disconnected pages. They should feel like lenses over the same Twin.
 
 Daedalus does not recommend what to do in this sandbox. It explains what a change would affect and why.
+
+The purpose is to observe reality, model reality, and explain reality. Human beings remain responsible for decisions.
 
 ## Relationship to production repositories
 

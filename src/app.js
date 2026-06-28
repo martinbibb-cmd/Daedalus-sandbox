@@ -7,20 +7,26 @@ const layers = [
     id: "house",
     label: "House",
     route: "/explore",
-    summary: "Rooms, fabric, insulation, windows, orientation."
+    summary: "Physical reality: rooms, structure, insulation, orientation, fabric."
   },
   {
     id: "systems",
     label: "Systems",
     route: "/components/boiler",
-    summary: "Heating, hot water, ventilation, electrical, water."
+    summary: "Functional reality: heating, hot water, ventilation, electrical, water."
   },
   {
     id: "home",
     label: "Home",
     route: "/understanding",
-    summary: "People, routines, comfort needs, priorities, plans."
+    summary: "Lived reality: people, routines, comfort needs, priorities, plans."
   }
+];
+
+const manifestoPrinciples = [
+  ["Capture", "Seen, not solved"],
+  ["Main", "Assembles understanding"],
+  ["Daedalus", "Explains reality"]
 ];
 
 const roomPins = [
@@ -171,8 +177,9 @@ function landing() {
   return shell(`
     <section class="opening">
       <div class="opening-copy">
-        <span class="signal">Digital Twin created</span>
+        <span class="signal">Reality First</span>
         <h1>Your home is made of three things.</h1>
+        <p>Daedalus is a Digital Twin designed to understand the House, the Systems and the Home together.</p>
       </div>
       <div class="three-layer-stage">
         <div class="layer-stack">
@@ -185,6 +192,9 @@ function landing() {
           </svg>
         </div>
       </div>
+      <div class="manifesto-band">
+        ${manifestoPrinciples.map(([label, value]) => `<span><strong>${label}</strong>${value}</span>`).join("")}
+      </div>
       <a class="primary-action" ${link("/home")}>Enter the model</a>
     </section>
   `, { nav: false });
@@ -194,7 +204,7 @@ function home() {
   return shell(`
     <section class="home-canvas">
       <div class="canvas-title">
-        <span class="signal">${twin.property.address}</span>
+        <span class="signal">The Digital Twin owns the truth</span>
         <h1>House, Systems and Home interacting.</h1>
       </div>
       <div class="hero-twin">
@@ -204,9 +214,9 @@ function home() {
         <div class="interaction-callout callout-c"><span>Home</span><strong>Sleep routines + comfort needs</strong></div>
       </div>
       <div class="scenario-strip">
-        <a ${link("/understanding/upstairs")}><span>Why this happens</span><strong>Upstairs comfort is not just a heating issue.</strong></a>
-        <a ${link("/components/boiler")}><span>Change effect</span><strong>If boiler output changed, Daedalus shows what would be affected.</strong></a>
-        <a ${link("/conversation")}><span>Ask the Twin</span><strong>Answers stay tied to the visible model.</strong></a>
+        <a ${link("/understanding/upstairs")}><span>Observe reality</span><strong>Unknowns remain visible until evidence changes them.</strong></a>
+        <a ${link("/components/boiler")}><span>Model reality</span><strong>If boiler output changed, Daedalus shows what would be affected.</strong></a>
+        <a ${link("/conversation")}><span>Explain reality</span><strong>Answers stay tied to the same Digital Twin.</strong></a>
       </div>
     </section>
   `);
@@ -292,7 +302,7 @@ function component(slug) {
     </div>
     <div class="change-effect">
       <span>Change effect model</span>
-      <strong>If ${item.name.toLowerCase()} output changed, Daedalus can show which rooms, controls and routines would be affected.</strong>
+      <strong>If ${item.name.toLowerCase()} output changed, Daedalus can show which parts of the House, Systems and Home would be affected and why.</strong>
     </div>
     <div class="evidence-rail">
       ${item.evidence.map((evidence, index) => `<span><i>${index + 1}</i>${evidence.split(".")[0]}</span>`).join("")}
