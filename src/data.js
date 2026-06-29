@@ -196,9 +196,76 @@ export const twin = {
   ]
 };
 
+export const heatPumpProjection = {
+  presets: [
+    { label: "Current boiler 70°C", value: 70 },
+    { label: "Transitional 55°C", value: 55 },
+    { label: "Heat pump target 45°C", value: 45 },
+    { label: "Low-temp ideal 40°C", value: 40 }
+  ],
+  rooms: [
+    {
+      slug: "kitchen",
+      name: "Kitchen",
+      demand: 1620,
+      baseOutput: 1780,
+      x: 624,
+      y: 468,
+      marker: "column radiator",
+      change:
+        "As flow temperature lowers, the same radiator gives out less heat. The rear extension glazing means this room is affected earlier than the hall."
+    },
+    {
+      slug: "utility",
+      name: "Utility",
+      demand: 760,
+      baseOutput: 1120,
+      x: 414,
+      y: 470,
+      marker: "panel radiator",
+      change:
+        "This compact service room has a smaller modelled demand, so the existing emitter remains sufficient across more of the slider range."
+    },
+    {
+      slug: "loft",
+      name: "Loft room",
+      demand: 1180,
+      baseOutput: 1260,
+      x: 500,
+      y: 218,
+      marker: "low profile radiator",
+      change:
+        "Lower flow temperature reduces available output. Loft fabric uncertainty makes the status more sensitive in this mocked example."
+    },
+    {
+      slug: "bathroom",
+      name: "Bathroom",
+      demand: 920,
+      baseOutput: 980,
+      x: 658,
+      y: 344,
+      marker: "towel emitter",
+      change:
+        "At lower flow temperature the towel emitter delivers less heat, so the room becomes marginal before it becomes undersized."
+    },
+    {
+      slug: "hall",
+      name: "Hall",
+      demand: 1040,
+      baseOutput: 1420,
+      x: 322,
+      y: 340,
+      marker: "hall radiator",
+      change:
+        "The hall has a central position and modelled demand below its current emitter output, so it changes state later in the projection."
+    }
+  ]
+};
+
 export const navItems = [
   ["Home", "/home"],
   ["Explore", "/explore"],
+  ["Heat pump projection", "/heat-pump-projection"],
   ["Understanding", "/understanding"],
   ["Conversation", "/conversation"],
   ["Timeline", "/timeline"],

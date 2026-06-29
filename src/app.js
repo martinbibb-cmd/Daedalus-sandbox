@@ -1,4 +1,4 @@
-import { navItems, twin } from "./data.js";
+import { heatPumpProjection, navItems, twin } from "./data.js";
 
 const app = document.querySelector("#app");
 
@@ -37,6 +37,11 @@ const roomPins = [
   ["Hall", "hall", 32, 46]
 ];
 
+const projectionState = {
+  flowTemperature: 55,
+  selectedRoom: "kitchen"
+};
+
 function route() {
   const hashRoute = window.location.hash.replace(/^#/, "");
   return hashRoute.startsWith("/") ? hashRoute : "/landing";
@@ -50,10 +55,40 @@ function navigate(path) {
 window.addEventListener("hashchange", render);
 
 document.addEventListener("click", (event) => {
+  const preset = event.target.closest("[data-flow-preset]");
+  if (preset) {
+    projectionState.flowTemperature = Number(preset.dataset.flowPreset);
+    render();
+    return;
+  }
+
+  const projectionRoom = event.target.closest("[data-projection-room]");
+  if (projectionRoom) {
+    projectionState.selectedRoom = projectionRoom.dataset.projectionRoom;
+    render();
+    return;
+  }
+
   const target = event.target.closest("[data-link]");
   if (!target) return;
   event.preventDefault();
   navigate(target.dataset.route);
+});
+
+document.addEventListener("input", (event) => {
+  if (event.target.matches("[data-flow-slider]")) {
+    projectionState.flowTemperature = Number(event.target.value);
+    render();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const projectionRoom = event.target.closest("[data-projection-room]");
+  if (!projectionRoom) return;
+  event.preventDefault();
+  projectionState.selectedRoom = projectionRoom.dataset.projectionRoom;
+  render();
 });
 
 function link(path) {
@@ -216,6 +251,7 @@ function home() {
       <div class="scenario-strip">
         <a ${link("/understanding/upstairs")}><span>Observe reality</span><strong>Unknowns remain visible until evidence changes them.</strong></a>
         <a ${link("/components/boiler")}><span>Model reality</span><strong>If boiler output changed, Daedalus shows what would be affected.</strong></a>
+        <a ${link("/heat-pump-projection")}><span>Explore consequences</span><strong>See how rooms change as flow temperature changes.</strong></a>
         <a ${link("/conversation")}><span>Explain reality</span><strong>Answers stay tied to the same Digital Twin.</strong></a>
       </div>
     </section>
@@ -244,9 +280,169 @@ function explore() {
       </svg>
     </div>
     <div class="visual-chips">
-      <span>Rooms</span><span>Fabric</span><span>Insulation</span><span>Windows</span><span>Orientation</span>
+      <span>Rooms</span><span>Fabric</span><span>Insulation</span><span>Windows</span><span>Orientation</span><a ${link("/heat-pump-projection")}>Heat pump projection</a>
     </div>
   `));
+}
+
+function radiatorOutputAt(room, flowTemperature) {
+  const factor = 0.34 + ((flowTemperature - 35) / 35) * 0.66;
+  return Math.round(room.baseOutput * factor);
+}
+
+function projectionStatus(room, flowTemperature) {
+  const output = radiatorOutputAt(room, flowTemperature);
+  const ratio = output / room.demand;
+  if (ratio >= 1) return "sufficient";
+  if (ratio >= 0.82) return "marginal";
+  return "undersized";
+}
+
+function statusIcon(status) {
+  if (status === "sufficient") return "OK";
+  if (status === "marginal") return "!";
+  return "LOW";
+}
+
+function scopAt(flowTemperature) {
+  const value = 4.35 - ((flowTemperature - 35) / 35) * 1.75;
+  return value.toFixed(1);
+}
+
+function likelyEmitterText(counts) {
+  if (counts.undersized > 0) return `${counts.undersized} room${counts.undersized === 1 ? "" : "s"} would need more emitter output`;
+  if (counts.marginal > 0) return `${counts.marginal} room${counts.marginal === 1 ? "" : "s"} affected near the margin`;
+  return "No rooms shown as needing more emitter output in this mocked example";
+}
+
+function heatPumpProjectionPage() {
+  const flow = projectionState.flowTemperature;
+  const rooms = heatPumpProjection.rooms.map((room) => ({
+    ...room,
+    output: radiatorOutputAt(room, flow),
+    status: projectionStatus(room, flow)
+  }));
+  const selected = rooms.find((room) => room.slug === projectionState.selectedRoom) || rooms[0];
+  const counts = rooms.reduce((result, room) => {
+    result[room.status] += 1;
+    return result;
+  }, { sufficient: 0, marginal: 0, undersized: 0 });
+
+  return shell(`
+    <section class="projection-page">
+      <div class="projection-title">
+        <div>
+          <span class="signal">Sandbox projection</span>
+          <h1>Heat pump projection</h1>
+          <p>See how your home changes as flow temperature changes.</p>
+        </div>
+        <div class="projection-context" aria-label="Visual comparison">
+          <div>
+            <span>Current boiler state</span>
+            <strong>70°C flow</strong>
+            <small>Existing emitters mostly sufficient, lower SCOP / gas boiler context</small>
+          </div>
+          <div>
+            <span>Heat pump state</span>
+            <strong>45°C flow</strong>
+            <small>Higher efficiency potential, some emitters need more output</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="projection-grid">
+        <div class="projection-stage">
+          ${projectionHouse(rooms, selected.slug)}
+          <div class="projection-controls" aria-label="Flow temperature controls">
+            <label for="flow-temperature">Flow temperature</label>
+            <div class="flow-readout"><strong>${flow}°C</strong><span>shown from mocked example data</span></div>
+            <input id="flow-temperature" data-flow-slider type="range" min="35" max="70" step="1" value="${flow}" aria-valuemin="35" aria-valuemax="70" aria-valuenow="${flow}" aria-label="Flow temperature in degrees Celsius" />
+            <div class="preset-row">
+              ${heatPumpProjection.presets.map((preset) => `<button type="button" data-flow-preset="${preset.value}" class="${preset.value === flow ? "active" : ""}">${preset.label}</button>`).join("")}
+            </div>
+          </div>
+        </div>
+
+        <aside class="projection-panel" aria-label="Projection values">
+          <div class="metric-grid">
+            <span><strong>${flow}°C</strong>selected flow temperature</span>
+            <span><strong>${scopAt(flow)}</strong>estimated SCOP</span>
+            <span><strong>${counts.sufficient}</strong>rooms sufficient</span>
+            <span><strong>${counts.marginal}</strong>rooms marginal</span>
+            <span><strong>${counts.undersized}</strong>rooms undersized</span>
+          </div>
+          <div class="emitter-note">
+            <span>Likely emitter changes required</span>
+            <strong>${likelyEmitterText(counts)}</strong>
+          </div>
+          <div class="status-legend" aria-label="Room state legend">
+            <span class="state-sufficient"><i>OK</i>sufficient at this temperature</span>
+            <span class="state-marginal"><i>!</i>marginal at this temperature</span>
+            <span class="state-undersized"><i>LOW</i>undersized at this temperature</span>
+          </div>
+          ${projectionDetail(selected, flow)}
+        </aside>
+      </div>
+    </section>
+  `);
+}
+
+function projectionHouse(rooms, selectedSlug) {
+  return `
+    <div class="heat-twin">
+      <svg viewBox="0 0 980 660" role="img" aria-label="House zones and radiator sufficiency projection">
+        <defs>
+          <pattern id="pattern-sufficient" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="rgba(84,155,132,.2)"/><path d="M0 10 L10 0" stroke="rgba(35,87,77,.24)" stroke-width="2"/></pattern>
+          <pattern id="pattern-marginal" width="9" height="9" patternUnits="userSpaceOnUse"><rect width="9" height="9" fill="rgba(224,178,89,.22)"/><path d="M0 4.5 H9" stroke="rgba(118,86,24,.3)" stroke-width="2"/></pattern>
+          <pattern id="pattern-undersized" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="rgba(204,104,108,.18)"/><path d="M0 0 L8 8 M8 0 L0 8" stroke="rgba(120,50,52,.27)" stroke-width="1.6"/></pattern>
+          <filter id="projectionShadow"><feDropShadow dx="0" dy="24" stdDeviation="20" flood-color="#293844" flood-opacity=".15"/></filter>
+        </defs>
+        <ellipse cx="500" cy="586" rx="350" ry="42" fill="#72848c" opacity=".16"/>
+        <path d="M174 280 L500 78 L826 280" fill="none" stroke="#22313a" stroke-width="5" stroke-linecap="round"/>
+        <path d="M232 280 H764 V536 H232 Z" fill="rgba(255,255,255,.68)" stroke="#22313a" stroke-width="2" filter="url(#projectionShadow)"/>
+        ${projectionZone("hall", "M232 280 H500 V406 H232 Z", rooms)}
+        ${projectionZone("bathroom", "M500 280 H764 V406 H500 Z", rooms)}
+        ${projectionZone("utility", "M338 406 H500 V536 H338 Z", rooms)}
+        ${projectionZone("kitchen", "M500 406 H764 V536 H500 Z", rooms)}
+        ${projectionZone("loft", "M326 230 L500 124 L674 230 Z", rooms)}
+        <path class="fabric-line" d="M232 406 H764 M338 280 V536 M500 172 V536 M656 280 V536"/>
+        <path class="heat-line" d="M414 474 C470 430 574 436 662 492"/>
+        ${rooms.map((room) => `
+          <g class="emitter-marker ${room.status} ${room.slug === selectedSlug ? "selected" : ""}" tabindex="0" role="button" data-projection-room="${room.slug}" aria-label="${room.name}: ${room.status} at this temperature">
+            <rect x="${room.x - 46}" y="${room.y - 20}" width="92" height="40" rx="8"/>
+            <path d="M${room.x - 28} ${room.y - 9} V${room.y + 9} M${room.x - 10} ${room.y - 9} V${room.y + 9} M${room.x + 8} ${room.y - 9} V${room.y + 9} M${room.x + 26} ${room.y - 9} V${room.y + 9}"/>
+            <text x="${room.x}" y="${room.y + 43}" text-anchor="middle">${room.name}</text>
+            <text x="${room.x}" y="${room.y - 30}" text-anchor="middle">${statusIcon(room.status)} ${room.status}</text>
+          </g>
+        `).join("")}
+      </svg>
+    </div>
+  `;
+}
+
+function projectionZone(slug, d, rooms) {
+  const room = rooms.find((item) => item.slug === slug);
+  return `<path class="projection-zone ${room.status}" d="${d}"/>`;
+}
+
+function projectionDetail(room, flow) {
+  const lowTempStatus = projectionStatus(room, 45);
+  const lowTempText = lowTempStatus === "sufficient"
+    ? "remains sufficient at this temperature"
+    : `becomes ${lowTempStatus} unless emitter output is increased`;
+  return `
+    <article class="projection-detail">
+      <span>Selected room or emitter</span>
+      <h2>${room.name}</h2>
+      <dl>
+        <div><dt>Current heat demand</dt><dd>${room.demand} W</dd></div>
+        <div><dt>Radiator output at ${flow}°C</dt><dd>${room.output} W</dd></div>
+        <div><dt>Status</dt><dd>${room.status} at this temperature</dd></div>
+      </dl>
+      <p>${room.change}</p>
+      <p>At 70°C this radiator can meet the modelled room demand. At 45°C the same radiator delivers less heat, so this room ${lowTempText}.</p>
+    </article>
+  `;
 }
 
 function room(slug) {
@@ -472,6 +668,7 @@ function viewFor(path) {
   if (path === "/landing") return landing();
   if (path === "/home") return home();
   if (path === "/explore") return explore();
+  if (path === "/heat-pump-projection") return heatPumpProjectionPage();
   if (path.startsWith("/rooms/")) return room(path.split("/").pop());
   if (path.startsWith("/components/")) return component(path.split("/").pop());
   if (path === "/understanding") return understanding();

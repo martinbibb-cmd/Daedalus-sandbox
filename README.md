@@ -60,6 +60,8 @@ Home, Explore, Rooms, Components, Understanding, Conversation, Timeline, and Doc
 
 Daedalus does not recommend what to do in this sandbox. It explains what a change would affect and why.
 
+The heat pump projection lens is a mocked UX demo only. It shows how changing flow temperature can affect radiator sufficiency and estimated SCOP from example data; it is not production logic, a physics engine, or a decision workflow.
+
 The purpose is to observe reality, model reality, and explain reality. Human beings remain responsible for decisions.
 
 ## Relationship to production repositories
@@ -73,6 +75,7 @@ Treat this as the Apple Keynote demo before building the operating system: usefu
 - `/landing` introduces House + Systems + Home as connected layers.
 - `/home` shows all three layers interacting on the Twin canvas.
 - `/explore` focuses the House layer.
+- `/heat-pump-projection` shows a sandbox projection demo for flow temperature, radiator sufficiency, and mocked SCOP values.
 - `/rooms/:room` selects a room while keeping the Twin visible.
 - `/components/:component` focuses a system element and what it affects.
 - `/understanding` explains behaviour through House + Systems + Home diagrams.
