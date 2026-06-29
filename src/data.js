@@ -209,12 +209,12 @@ export const heatPumpProjection = {
       name: "Kitchen",
       demand: 1620,
       baseOutput: 1780,
-      x: 640,
-      y: 424,
-      zone: "M512 350 L758 304 L758 478 L512 532 Z",
-      emitter: "M600 420 l74 -14 0 34 -74 14 Z",
-      pipe: "M394 430 C470 410 536 420 620 430",
-      loss: "M690 350 C724 330 750 330 778 352",
+      x: 650,
+      y: 410,
+      zone: "M510 302 H820 V548 H510 Z",
+      emitter: "M612 404 h76 v34 h-76 Z",
+      pipe: "M318 402 H430 V424 H612",
+      loss: "M736 302 V548 M820 334 V516",
       note: "Lower flow makes this rear room affected earlier because the emitter gives out less heat."
     },
     {
@@ -222,12 +222,12 @@ export const heatPumpProjection = {
       name: "Utility",
       demand: 760,
       baseOutput: 1120,
-      x: 410,
-      y: 430,
-      zone: "M332 386 L512 350 L512 532 L332 496 Z",
-      emitter: "M374 424 l62 -12 0 30 -62 12 Z",
-      pipe: "M394 430 C400 430 410 430 428 430",
-      loss: "M360 392 C338 374 316 370 288 382",
+      x: 388,
+      y: 432,
+      zone: "M318 302 H510 V548 H318 Z",
+      emitter: "M354 416 h70 v34 h-70 Z",
+      pipe: "M318 402 H388",
+      loss: "M318 330 V520",
       note: "The smaller service space stays sufficient across more of the mocked projection."
     },
     {
@@ -235,12 +235,12 @@ export const heatPumpProjection = {
       name: "Loft room",
       demand: 1180,
       baseOutput: 1260,
-      x: 500,
-      y: 214,
-      zone: "M314 240 L500 118 L690 240 L512 286 Z",
-      emitter: "M464 232 l72 -14 0 28 -72 14 Z",
-      pipe: "M394 430 C420 346 458 276 500 238",
-      loss: "M500 118 C538 96 588 104 626 130",
+      x: 530,
+      y: 178,
+      zone: "M270 74 H690 V302 H270 Z",
+      emitter: "M494 168 h72 v30 h-72 Z",
+      pipe: "M318 402 H430 V188 H494",
+      loss: "M300 74 H660 M690 110 V260",
       note: "The loft room is sensitive because its fabric assumptions are still visible in the twin."
     },
     {
@@ -248,12 +248,12 @@ export const heatPumpProjection = {
       name: "Bathroom",
       demand: 920,
       baseOutput: 980,
-      x: 654,
-      y: 310,
-      zone: "M512 286 L758 240 L758 304 L512 350 Z",
-      emitter: "M626 308 l60 -12 0 32 -60 12 Z",
-      pipe: "M394 430 C470 342 556 310 654 322",
-      loss: "M728 248 C760 238 786 244 808 264",
+      x: 752,
+      y: 194,
+      zone: "M690 74 H820 V302 H690 Z",
+      emitter: "M720 184 h64 v34 h-64 Z",
+      pipe: "M318 402 H430 V194 H720",
+      loss: "M820 104 V272",
       note: "As flow drops, the towel emitter becomes marginal before it becomes undersized."
     },
     {
@@ -261,20 +261,88 @@ export const heatPumpProjection = {
       name: "Hall",
       demand: 1040,
       baseOutput: 1420,
-      x: 334,
-      y: 318,
-      zone: "M246 286 L512 240 L512 350 L332 386 L246 352 Z",
-      emitter: "M296 318 l70 -14 0 32 -70 14 Z",
-      pipe: "M394 430 C370 380 350 344 334 318",
-      loss: "M250 300 C220 286 198 292 176 312",
+      x: 350,
+      y: 202,
+      zone: "M142 74 H270 V548 H318 V302 H270 V74 Z",
+      emitter: "M220 198 h70 v34 h-70 Z",
+      pipe: "M318 402 H350 V232 H290",
+      loss: "M142 106 V502",
       note: "The central hallway changes later because the modelled emitter output stays closer to demand."
     }
   ]
 };
+
+export const captureReview = {
+  question: "Have I got the property right?",
+  objects: [
+    {
+      slug: "boiler",
+      label: "Boiler",
+      type: "heating",
+      x: 318,
+      y: 402,
+      status: "confirmed",
+      evidenceType: "photo",
+      evidence: "Utility cupboard photo: casing, pressure gauge and pipe exits visible.",
+      transcript: "Homeowner: the boiler and programmer are both in this cupboard.",
+      uncertainty: "Low"
+    },
+    {
+      slug: "cylinder",
+      label: "Cylinder",
+      type: "hot-water",
+      x: 374,
+      y: 486,
+      status: "uncertain",
+      evidenceType: "photo",
+      evidence: "Partial photo shows a tall insulated cylinder behind stored items.",
+      transcript: "Voice note: I think the tank is behind the shelving.",
+      uncertainty: "Medium"
+    },
+    {
+      slug: "bath-extractor",
+      label: "Extractor",
+      type: "ventilation",
+      x: 792,
+      y: 120,
+      status: "needs-look",
+      evidenceType: "voice",
+      evidence: "Ceiling grille captured, route out of the room not visible.",
+      transcript: "Survey note: cannot see whether it vents through roof tile or soffit.",
+      uncertainty: "High"
+    },
+    {
+      slug: "kitchen-radiator",
+      label: "Kitchen radiator",
+      type: "heating",
+      x: 650,
+      y: 410,
+      status: "uncertain",
+      evidenceType: "photo",
+      evidence: "Photo places radiator below rear glazing; size estimate is inferred.",
+      transcript: "Homeowner: this room warms more slowly in the morning.",
+      uncertainty: "Medium"
+    },
+    {
+      slug: "hall-thermostat",
+      label: "Thermostat",
+      type: "controls",
+      x: 214,
+      y: 286,
+      status: "confirmed",
+      evidenceType: "transcript",
+      evidence: "Survey transcript places thermostat on hall wall by stair opening.",
+      transcript: "Capture: thermostat is here, not in the living room.",
+      uncertainty: "Low"
+    }
+  ]
+};
+
 export const navItems = [
   ["Home", "/home"],
   ["Explore", "/explore"],
   ["Heat pump projection", "/heat-pump-projection"],
+  ["Capture review", "/capture-review"],
   ["Understanding", "/understanding"],
   ["Conversation", "/conversation"],
   ["Timeline", "/timeline"],

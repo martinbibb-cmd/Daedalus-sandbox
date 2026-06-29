@@ -473,7 +473,7 @@ p { color: var(--muted); line-height: 1.45; }
 
 .scenario-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -562,18 +562,18 @@ p { color: var(--muted); line-height: 1.45; }
   text-transform: uppercase;
 }
 
-.twin-projection {
+.spatial-twin {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 12%, rgba(255,255,255,.94), rgba(255,255,255,0) 34%),
-    linear-gradient(145deg, #eef4f3 0%, #f8f7f2 48%, #e8eff1 100%);
+    radial-gradient(circle at 50% 18%, rgba(255,255,255,.92), rgba(255,255,255,0) 38%),
+    linear-gradient(145deg, #eef4f3 0%, #f8f7f2 48%, #e7eef0 100%);
 }
 
 .projection-exit,
 .projection-name,
-.temperature-rail,
+.spatial-controls,
 .object-whisper {
   position: fixed;
   z-index: 10;
@@ -599,6 +599,7 @@ p { color: var(--muted); line-height: 1.45; }
   display: flex;
   align-items: baseline;
   gap: 12px;
+  max-width: min(620px, calc(100vw - 164px));
   padding: 10px 14px;
   border-radius: 999px;
   background: rgba(255,255,255,.54);
@@ -606,8 +607,7 @@ p { color: var(--muted); line-height: 1.45; }
 }
 
 .projection-name span,
-.temperature-rail span,
-.house-caption,
+.spatial-controls span,
 .object-whisper span {
   color: var(--muted);
   font-size: 12px;
@@ -617,185 +617,138 @@ p { color: var(--muted); line-height: 1.45; }
 }
 
 .projection-name strong {
-  font-size: 22px;
+  min-width: 0;
+  font-size: 21px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.projection-space {
+.spatial-stage {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 70px 24px 106px;
+  padding: 72px 20px 118px;
+  perspective: 1200px;
 }
 
-.twin-projection.compare .projection-space {
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.projection-world {
-  position: relative;
-  width: min(96vw, 1220px);
-  min-height: 76vh;
-  display: grid;
-  place-items: center;
-}
-
-.twin-projection.compare .projection-world {
-  width: min(47vw, 760px);
-  min-height: 70vh;
-}
-
-.projection-world svg {
-  width: 100%;
+.spatial-model {
+  width: min(96vw, 1240px);
   height: min(78vh, 780px);
+  transform: scale(var(--zoom));
+  transform-origin: center;
+  transition: transform 360ms ease;
+}
+
+.spatial-twin.tilted .spatial-model {
+  transform: rotateX(16deg) rotateZ(-2deg) scale(var(--zoom));
+}
+
+.spatial-model svg {
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 
-.projection-camera {
-  transform-origin: 500px 360px;
-  transition: transform 520ms cubic-bezier(.2,.8,.2,1);
+.plan-camera {
+  transform-origin: 480px 320px;
 }
 
-.projection-world.focus-kitchen .projection-camera { transform: translate(-44px, -18px) scale(1.04); }
-.projection-world.focus-utility .projection-camera { transform: translate(40px, -14px) scale(1.05); }
-.projection-world.focus-loft .projection-camera { transform: translate(0, 54px) scale(1.08); }
-.projection-world.focus-bathroom .projection-camera { transform: translate(-50px, 48px) scale(1.07); }
-.projection-world.focus-hall .projection-camera { transform: translate(56px, 28px) scale(1.06); }
-.twin-projection.compare .projection-camera { transform: none; }
-
-.site-shadow {
-  fill: #62737a;
-  opacity: .13;
+.site-boundary {
+  fill: rgba(255,255,255,.7);
+  stroke: rgba(21,33,42,.3);
+  stroke-width: 3;
 }
 
-.roof-plane,
-.left-wall,
-.right-wall {
-  fill: rgba(255,255,255,.5);
-  stroke: rgba(21,33,42,.2);
-  stroke-width: 1.7;
+.plan-room {
+  fill: rgba(255,255,255,.46);
+  stroke: rgba(21,33,42,.16);
+  stroke-width: 1.5;
+  transition: opacity 220ms ease, filter 220ms ease;
 }
 
-.roof-plane { fill: rgba(242,247,247,.62); }
-.left-wall { fill: rgba(255,255,255,.44); }
-.right-wall { fill: rgba(232,241,242,.48); }
+.plan-room.sufficient { fill: rgba(94,157,139,.18); }
+.plan-room.marginal { fill: rgba(218,174,89,.22); stroke-dasharray: 10 7; }
+.plan-room.undersized { fill: rgba(204,102,109,.22); stroke-dasharray: 3 5; }
+.plan-room.selected { filter: drop-shadow(0 14px 18px rgba(21,33,42,.14)); stroke-width: 3; }
 
-.cutaway-edge {
+.plan-walls {
   fill: none;
-  stroke: rgba(21,33,42,.44);
-  stroke-width: 2.2;
-  stroke-linejoin: round;
-}
-
-.structure-line {
-  fill: none;
-  stroke: rgba(21,33,42,.18);
-  stroke-width: 1.8;
-}
-
-.living-room {
-  stroke: rgba(21,33,42,.18);
-  stroke-width: 1.6;
-  transition: opacity 260ms ease, filter 260ms ease;
-}
-
-.living-room.sufficient { fill: rgba(94,157,139,.18); }
-.living-room.marginal { fill: rgba(218,174,89,.22); stroke-dasharray: 9 6; }
-.living-room.undersized { fill: rgba(204,102,109,.21); stroke-dasharray: 3 5; }
-.living-room.dimmed { opacity: .44; }
-.living-room.selected { opacity: .96; filter: drop-shadow(0 14px 18px rgba(21,33,42,.13)); }
-
-.heat-source rect {
-  fill: rgba(247,250,250,.92);
   stroke: rgba(21,33,42,.42);
-  stroke-width: 2;
+  stroke-width: 5;
+  stroke-linecap: square;
 }
 
-.heat-source circle {
-  fill: rgba(215,114,111,.22);
-  stroke: rgba(215,114,111,.62);
-  stroke-width: 4;
-}
-
-.heat-source.firing circle {
-  animation: sourceBreath 1800ms ease-in-out infinite;
-}
-
-.heat-source.quiet circle {
-  fill: rgba(95,183,197,.18);
-  stroke: rgba(95,183,197,.52);
-}
-
-.heat-source text,
-.radiator text {
-  fill: var(--ink);
-  font-size: 15px;
-  font-weight: 840;
-  paint-order: stroke;
-  stroke: rgba(255,255,255,.88);
-  stroke-width: 4px;
+.service-spine,
+.plan-pipe {
+  fill: none;
+  stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.pipe {
-  fill: none;
-  stroke: rgba(215,114,111,.24);
-  stroke-width: 5;
-  stroke-linecap: round;
-  stroke-dasharray: 10 12;
-  opacity: .35;
+.service-spine {
+  stroke: rgba(38,73,88,.34);
+  stroke-width: 8;
 }
 
-.pipe.selected {
+.plan-pipe {
+  stroke: rgba(79,129,145,.46);
+  stroke-width: 7;
+  stroke-dasharray: 12 11;
+  opacity: .72;
+}
+
+.plan-pipe.selected {
+  stroke-width: 11;
   opacity: 1;
-  stroke-width: 8;
   animation: waterMove 1100ms linear infinite;
 }
 
-.pipe.sufficient.selected { stroke: rgba(84,155,132,.82); }
-.pipe.marginal.selected { stroke: rgba(224,178,89,.88); }
-.pipe.undersized.selected { stroke: rgba(204,104,108,.9); }
+.plan-pipe.sufficient.selected { stroke: rgba(84,155,132,.9); }
+.plan-pipe.marginal.selected { stroke: rgba(224,178,89,.92); }
+.plan-pipe.undersized.selected { stroke: rgba(204,104,108,.94); }
 
-.loss {
+.heat-loss {
   fill: none;
-  stroke: rgba(55,71,82,.18);
+  stroke: rgba(55,71,82,.2);
   stroke-width: calc(3px + var(--loss) * 4px);
   stroke-linecap: round;
   stroke-dasharray: 2 12;
   opacity: .18;
 }
 
-.loss.selected {
-  opacity: .76;
+.heat-loss.selected {
+  opacity: .72;
   animation: heatDrift 1600ms linear infinite;
 }
 
-.radiator {
+.plan-radiator,
+.review-object {
   cursor: pointer;
   outline: none;
 }
 
-.emitter-body {
-  fill: rgba(255,255,255,.92);
-  stroke: rgba(21,33,42,.6);
-  stroke-width: 2.2;
+.radiator-body {
+  fill: rgba(255,255,255,.94);
+  stroke: rgba(21,33,42,.62);
+  stroke-width: 2.5;
 }
 
-.emitter-fins {
-  stroke: rgba(21,33,42,.54);
+.radiator-fins {
+  stroke: rgba(21,33,42,.58);
   stroke-width: 3;
   stroke-linecap: round;
 }
 
-.radiator.marginal .emitter-body { stroke-dasharray: 8 5; }
-.radiator.undersized .emitter-body { stroke-dasharray: 3 5; }
-.radiator.selected .emitter-body,
-.radiator:focus .emitter-body {
+.plan-radiator.marginal .radiator-body { stroke-dasharray: 8 5; }
+.plan-radiator.undersized .radiator-body { stroke-dasharray: 3 5; }
+.plan-radiator.selected .radiator-body,
+.plan-radiator:focus .radiator-body {
   stroke-width: 4;
   filter: drop-shadow(0 12px 18px rgba(21,33,42,.18));
 }
 
-.heat-pulse {
+.plan-heat {
   transform-box: fill-box;
   transform-origin: center;
   fill: rgba(215,114,111,.12);
@@ -804,82 +757,125 @@ p { color: var(--muted); line-height: 1.45; }
   opacity: calc(.2 + var(--heat) * .42);
 }
 
-.radiator.selected .heat-pulse {
+.plan-radiator.selected .plan-heat {
   animation: radiatorBreath 1900ms ease-in-out infinite;
 }
 
-.radiator.sufficient .heat-pulse { fill: rgba(84,155,132,.15); stroke: rgba(84,155,132,.28); }
-.radiator.marginal .heat-pulse { fill: rgba(224,178,89,.15); stroke: rgba(128,94,34,.28); }
-.radiator.undersized .heat-pulse { fill: rgba(204,104,108,.14); stroke: rgba(128,55,60,.32); }
+.plan-radiator.sufficient .plan-heat { fill: rgba(84,155,132,.15); stroke: rgba(84,155,132,.28); }
+.plan-radiator.marginal .plan-heat { fill: rgba(224,178,89,.15); stroke: rgba(128,94,34,.28); }
+.plan-radiator.undersized .plan-heat { fill: rgba(204,104,108,.14); stroke: rgba(128,55,60,.32); }
 
-.house-caption {
-  position: absolute;
-  left: 50%;
-  bottom: 8px;
-  transform: translateX(-50%);
-  padding: 8px 11px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.48);
-  box-shadow: inset 0 0 0 1px rgba(21,33,42,.08);
+.plan-radiator text,
+.review-object text,
+.scop-chip,
+.evidence-ray text {
+  fill: var(--ink);
+  font-size: 15px;
+  font-weight: 840;
+  paint-order: stroke;
+  stroke: rgba(255,255,255,.9);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.scop-chip {
+  font-size: 18px;
+}
+
+.review-object circle {
+  fill: rgba(255,255,255,.92);
+  stroke: rgba(21,33,42,.58);
+  stroke-width: 2.5;
+}
+
+.review-object path {
+  fill: none;
+  stroke: rgba(21,33,42,.72);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.review-object.uncertain circle { fill: rgba(250,231,186,.96); stroke-dasharray: 8 5; }
+.review-object.needs-look circle,
+.review-object.needs-another-look circle { fill: rgba(247,209,211,.96); stroke-dasharray: 3 5; }
+.review-object.confirmed circle,
+.review-object.confirm circle { fill: rgba(214,239,228,.96); }
+.review-object.correct circle { fill: rgba(223,232,252,.96); }
+.review-object.leave-unknown circle { fill: rgba(238,238,232,.96); stroke-dasharray: 3 5; }
+.review-object.selected circle,
+.review-object:focus circle {
+  stroke-width: 4;
+  filter: drop-shadow(0 12px 18px rgba(21,33,42,.18));
+}
+
+.evidence-ray path {
+  fill: none;
+  stroke: rgba(102,127,224,.16);
+  stroke-width: 2;
+  stroke-dasharray: 5 8;
+}
+
+.evidence-ray.selected path {
+  stroke: rgba(102,127,224,.72);
+  stroke-width: 4;
+}
+
+.spatial-model.hide-rooms .room-layer,
+.spatial-model.hide-services .service-layer,
+.spatial-model.hide-evidence .evidence-layer,
+.spatial-model.hide-objects .object-layer {
+  opacity: .08;
 }
 
 .object-whisper {
-  max-width: 300px;
+  max-width: 330px;
   padding: 12px 14px;
   display: grid;
   gap: 5px;
   border-radius: 14px;
-  background: rgba(255,255,255,.7);
-  box-shadow: 0 22px 70px rgba(21,33,42,.16), inset 0 0 0 1px rgba(255,255,255,.7);
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 22px 70px rgba(21,33,42,.16), inset 0 0 0 1px rgba(255,255,255,.72);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
-.twin-projection.compare .object-whisper {
-  display: none;
-}
+.object-whisper strong { font-size: 19px; }
+.object-whisper em { color: var(--ink); font-style: normal; font-weight: 820; }
+.object-whisper p { font-size: 13px; line-height: 1.35; }
+.object-whisper.sufficient,
+.object-whisper.confirmed,
+.object-whisper.confirm { border-left: 4px solid rgba(84,155,132,.72); }
+.object-whisper.marginal,
+.object-whisper.uncertain { border-left: 4px dashed rgba(224,178,89,.84); }
+.object-whisper.leave-unknown { border-left: 4px dotted rgba(97,111,119,.62); }
+.object-whisper.undersized,
+.object-whisper.needs-look,
+.object-whisper.needs-another-look { border-left: 4px dotted rgba(204,104,108,.88); }
 
-.object-whisper strong {
-  font-size: 19px;
-}
-
-.object-whisper em {
-  color: var(--ink);
-  font-style: normal;
-  font-weight: 820;
-}
-
-.object-whisper p {
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.object-whisper.sufficient { border-left: 4px solid rgba(84,155,132,.72); }
-.object-whisper.marginal { border-left: 4px dashed rgba(224,178,89,.84); }
-.object-whisper.undersized { border-left: 4px dotted rgba(204,104,108,.88); }
-
-.temperature-rail {
+.spatial-controls {
   left: 50%;
-  bottom: 24px;
-  width: min(760px, calc(100vw - 40px));
+  bottom: 22px;
+  width: min(980px, calc(100vw - 40px));
   min-height: 64px;
   padding: 12px 14px;
-  display: grid;
-  grid-template-columns: auto minmax(160px, 1fr) auto auto auto;
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
   align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  background: rgba(255,255,255,.62);
+  background: rgba(255,255,255,.64);
   box-shadow: 0 24px 70px rgba(21,33,42,.14), inset 0 0 0 1px rgba(255,255,255,.74);
   transform: translateX(-50%);
 }
 
-.temperature-rail input[type="range"] {
-  width: 100%;
+.spatial-controls input[type="range"] {
+  width: min(280px, 28vw);
   accent-color: var(--ink);
 }
 
-.temperature-rail output {
+.spatial-controls output {
   min-width: 54px;
   font-size: 22px;
   font-weight: 860;
@@ -891,7 +887,7 @@ p { color: var(--muted); line-height: 1.45; }
 }
 
 .temperature-stops button,
-.compare-switch {
+.spatial-controls button {
   min-width: 42px;
   height: 38px;
   border: 1px solid rgba(21,33,42,.12);
@@ -902,22 +898,21 @@ p { color: var(--muted); line-height: 1.45; }
   cursor: pointer;
 }
 
+.spatial-controls button.active,
+.spatial-controls button:focus,
 .temperature-stops button.active,
-.compare-switch.active,
-.temperature-stops button:focus,
-.compare-switch:focus {
+.temperature-stops button:focus {
   color: #fff;
   background: var(--ink);
   outline: 2px solid rgba(21,33,42,.18);
 }
 
-.compare-switch {
-  min-width: 88px;
-  padding: 0 14px;
+.review-actions {
+  border-radius: 24px;
 }
 
 @keyframes waterMove {
-  to { stroke-dashoffset: -22; }
+  to { stroke-dashoffset: -23; }
 }
 
 @keyframes heatDrift {
@@ -926,10 +921,6 @@ p { color: var(--muted); line-height: 1.45; }
 
 @keyframes radiatorBreath {
   50% { transform: scale(1.08); opacity: calc(.34 + var(--heat) * .42); }
-}
-
-@keyframes sourceBreath {
-  50% { r: 28; opacity: .72; }
 }
 .thing-facts {
   display: grid;
@@ -1237,40 +1228,29 @@ p { color: var(--muted); line-height: 1.45; }
     height: 46px;
   }
 
-  .twin-projection.compare .projection-space {
-    grid-template-columns: 1fr;
-  }
-
-  .projection-space {
-    padding: 78px 10px 132px;
-  }
-
-  .projection-world,
-  .twin-projection.compare .projection-world {
-    width: 112vw;
-    min-height: 58vh;
-  }
-
-  .projection-world svg {
-    height: 58vh;
-  }
-
   .projection-name {
     left: 138px;
     right: 12px;
     justify-content: space-between;
   }
 
-  .temperature-rail {
+  .spatial-stage {
+    padding: 78px 8px 154px;
+  }
+
+  .spatial-model {
+    width: 118vw;
+    height: 62vh;
+  }
+
+  .spatial-controls {
     bottom: 12px;
     width: calc(100vw - 20px);
-    grid-template-columns: auto 1fr auto;
     border-radius: 22px;
   }
 
-  .temperature-stops,
-  .compare-switch {
-    grid-column: 1 / -1;
+  .spatial-controls input[type="range"] {
+    width: min(240px, 54vw);
   }
 
   .temperature-stops {

@@ -44,9 +44,19 @@ The guiding product constraint is:
 Reality -> Analysis -> Explanation
 ```
 
-## Visual design intent
+## Spatial interaction intent
 
-The Digital Twin is the canvas. Every feature is another lens over the same visible home model.
+The navigable spatial Twin is the canvas. The user is not navigating pages; the user is navigating space.
+
+The default view should be a surveyor-friendly top-down floor plan: spatially accurate, anchored to rooms, areas, objects, services, evidence, and uncertainty.
+
+The enhanced view should be a raised 3D view over the same Twin: rotatable, tiltable, zoomable, able to isolate floors and layers, able to toggle services, able to show or hide object-attached evidence, and able to highlight uncertainty.
+
+The Twin is not a picture of the house. The Twin is the place where interaction happens.
+
+Daedalus should not use cutaway house views, side elevations, cartoon house illustrations, dashboard-first UI, or cards as the primary interface. Those views are misleading because they only work for simple two-up/two-down properties and fail for bungalows, flats, extensions, split levels, loft conversions, commercial properties, and irregular buildings.
+
+Every feature is another projection of the Twin, not a detached page or summary surface.
 
 The core product model is:
 
@@ -56,11 +66,13 @@ The core product model is:
 
 Daedalus is different because it models how these three interact. The user should understand that visually before reading supporting copy.
 
-Home, Explore, Rooms, Components, Understanding, Conversation, Timeline, and Documents should not feel like disconnected pages. They should feel like lenses over the same Twin.
+Home, Explore, Rooms, Components, Understanding, Conversation, Timeline, and Documents should not feel like disconnected pages. They should feel like spatial review modes over the same Twin canvas.
 
 Daedalus does not recommend what to do in this sandbox. It explains what a change would affect and why.
 
-The heat pump projection lens is a mocked Digital Twin projection only. The house is the interface: changing flow temperature changes rooms, emitters, pipework, heat movement, and mocked SCOP in the visible twin. It is not production logic, a physics engine, or a decision workflow.
+The heat pump projection lens is a mocked projection of the Twin only. The Twin canvas is the interface: changing flow temperature changes rooms, emitters, pipework, heat movement, and mocked SCOP values in the navigable spatial Twin. It is not production logic, a physics engine, or a decision workflow.
+
+The Capture Review lens is mocked spatial proofreading. The question is "Have I got the property right?" and evidence appears from the selected object rather than as detached metadata.
 
 The purpose is to observe reality, model reality, and explain reality. Human beings remain responsible for decisions.
 
@@ -75,13 +87,14 @@ Treat this as the Apple Keynote demo before building the operating system: usefu
 - `/landing` introduces House + Systems + Home as connected layers.
 - `/home` shows all three layers interacting on the Twin canvas.
 - `/explore` focuses the House layer.
-- `/heat-pump-projection` opens a house-first sandbox projection for flow temperature, radiator sufficiency, pipework, heat movement, and mocked SCOP values.
+- `/heat-pump-projection` opens a projection of the Twin for flow temperature, radiator sufficiency, pipework, heat movement, and mocked SCOP values.
+- `/capture-review` shows Capture Review as spatial Twin proofreading with object-attached evidence and uncertainty.
 - `/rooms/:room` selects a room while keeping the Twin visible.
 - `/components/:component` focuses a system element and what it affects.
 - `/understanding` explains behaviour through House + Systems + Home diagrams.
 - `/conversation` keeps the Twin visible beside evidence-grounded answers.
 - `/timeline` shows changes attached to the Twin.
-- `/documents` shows evidence attached to the model, not a file list.
+- `/documents` shows object-attached evidence on the model, not a file list.
 
 ## Editing
 

@@ -1,4 +1,4 @@
-import { heatPumpProjection, navItems, twin } from "./data.js";
+import { captureReview, heatPumpProjection, navItems, twin } from "./data.js";
 
 const app = document.querySelector("#app");
 
@@ -40,7 +40,25 @@ const roomPins = [
 const projectionState = {
   flowTemperature: 55,
   selectedRoom: "kitchen",
-  compareMode: false
+  tilt: false,
+  zoom: 1,
+  layers: {
+    rooms: true,
+    services: true,
+    evidence: false
+  }
+};
+
+const captureState = {
+  selectedObject: "cylinder",
+  tilt: false,
+  zoom: 1,
+  layers: {
+    objects: true,
+    services: true,
+    evidence: true
+  },
+  statuses: {}
 };
 
 function route() {
@@ -70,9 +88,42 @@ document.addEventListener("click", (event) => {
     return;
   }
 
-  const compareMode = event.target.closest("[data-compare-mode]");
-  if (compareMode) {
-    projectionState.compareMode = !projectionState.compareMode;
+  const tiltMode = event.target.closest("[data-spatial-tilt]");
+  if (tiltMode) {
+    const targetState = route() === "/capture-review" ? captureState : projectionState;
+    targetState.tilt = !targetState.tilt;
+    render();
+    return;
+  }
+
+  const zoomControl = event.target.closest("[data-spatial-zoom]");
+  if (zoomControl) {
+    const targetState = route() === "/capture-review" ? captureState : projectionState;
+    const direction = Number(zoomControl.dataset.spatialZoom);
+    targetState.zoom = Math.max(0.82, Math.min(1.34, targetState.zoom + direction * 0.12));
+    render();
+    return;
+  }
+
+  const layerControl = event.target.closest("[data-spatial-layer]");
+  if (layerControl) {
+    const targetState = route() === "/capture-review" ? captureState : projectionState;
+    const layer = layerControl.dataset.spatialLayer;
+    targetState.layers[layer] = !targetState.layers[layer];
+    render();
+    return;
+  }
+
+  const reviewObject = event.target.closest("[data-review-object]");
+  if (reviewObject) {
+    captureState.selectedObject = reviewObject.dataset.reviewObject;
+    render();
+    return;
+  }
+
+  const reviewAction = event.target.closest("[data-review-action]");
+  if (reviewAction) {
+    captureState.statuses[captureState.selectedObject] = reviewAction.dataset.reviewAction;
     render();
     return;
   }
@@ -93,9 +144,11 @@ document.addEventListener("input", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
   const projectionRoom = event.target.closest("[data-projection-room]");
-  if (!projectionRoom) return;
+  const reviewObject = event.target.closest("[data-review-object]");
+  if (!projectionRoom && !reviewObject) return;
   event.preventDefault();
-  projectionState.selectedRoom = projectionRoom.dataset.projectionRoom;
+  if (projectionRoom) projectionState.selectedRoom = projectionRoom.dataset.projectionRoom;
+  if (reviewObject) captureState.selectedObject = reviewObject.dataset.reviewObject;
   render();
 });
 
@@ -259,7 +312,8 @@ function home() {
       <div class="scenario-strip">
         <a ${link("/understanding/upstairs")}><span>Observe reality</span><strong>Unknowns remain visible until evidence changes them.</strong></a>
         <a ${link("/components/boiler")}><span>Model reality</span><strong>If boiler output changed, Daedalus shows what would be affected.</strong></a>
-        <a ${link("/heat-pump-projection")}><span>Explore consequences</span><strong>See how rooms change as flow temperature changes.</strong></a>
+        <a ${link("/heat-pump-projection")}><span>Spatial projection</span><strong>Adjust the plan and watch rooms, emitters and pipework respond.</strong></a>
+        <a ${link("/capture-review")}><span>Capture review</span><strong>Proofread the property by checking objects on the spatial Twin.</strong></a>
         <a ${link("/conversation")}><span>Explain reality</span><strong>Answers stay tied to the same Digital Twin.</strong></a>
       </div>
     </section>
@@ -288,7 +342,7 @@ function explore() {
       </svg>
     </div>
     <div class="visual-chips">
-      <span>Rooms</span><span>Fabric</span><span>Insulation</span><span>Windows</span><span>Orientation</span><a ${link("/heat-pump-projection")}>Heat pump projection</a>
+      <span>Rooms</span><span>Fabric</span><span>Insulation</span><span>Windows</span><span>Orientation</span><a ${link("/heat-pump-projection")}>Heat pump projection</a><a ${link("/capture-review")}>Capture review</a>
     </div>
   `));
 }
@@ -317,34 +371,36 @@ function scopAt(flowTemperature) {
 function heatPumpProjectionPage() {
   const flow = projectionState.flowTemperature;
   const rooms = heatPumpProjection.rooms.map((room) => projectionRoomState(room, flow));
-  const currentRooms = heatPumpProjection.rooms.map((room) => projectionRoomState(room, 70));
   const selected = rooms.find((room) => room.slug === projectionState.selectedRoom) || rooms[0];
 
   return shell(`
-    <section class="twin-projection ${projectionState.compareMode ? "compare" : "single"}" aria-label="Heat pump projection Digital Twin">
+    <section class="spatial-twin ${projectionState.tilt ? "tilted" : ""}" aria-label="Heat pump projection spatial Twin">
       <a class="projection-exit" ${link("/home")}>Daedalus</a>
       <div class="projection-name">
         <span>Heat pump projection</span>
         <strong>${flow}&deg;C</strong>
       </div>
 
-      <div class="projection-space">
-        ${projectionState.compareMode ? `
-          ${projectionTwin({ label: "Current house", rooms: currentRooms, flow: 70, selectedSlug: selected.slug, locked: true })}
-          ${projectionTwin({ label: "Future house", rooms, flow, selectedSlug: selected.slug })}
-        ` : projectionTwin({ label: "Your house", rooms, flow, selectedSlug: selected.slug })}
+      <div class="spatial-stage">
+        ${spatialPlan({
+          rooms,
+          selectedSlug: selected.slug,
+          mode: "projection",
+          state: projectionState,
+          flow
+        })}
       </div>
 
-      ${objectWhisper(selected, flow)}
+      ${projectionObjectNote(selected, flow)}
 
-      <div class="temperature-rail" aria-label="Flow temperature">
+      <div class="spatial-controls" aria-label="Spatial Twin controls">
         <span>Flow</span>
         <input id="flow-temperature" data-flow-slider type="range" min="35" max="70" step="1" value="${flow}" aria-valuemin="35" aria-valuemax="70" aria-valuenow="${flow}" aria-label="Flow temperature in degrees Celsius" />
         <output for="flow-temperature">${flow}&deg;C</output>
         <div class="temperature-stops">
           ${heatPumpProjection.presets.map((preset) => `<button type="button" data-flow-preset="${preset.value}" class="${preset.value === flow ? "active" : ""}" aria-label="Set flow temperature to ${preset.value} degrees Celsius">${preset.label}</button>`).join("")}
         </div>
-        <button type="button" class="compare-switch ${projectionState.compareMode ? "active" : ""}" data-compare-mode aria-pressed="${projectionState.compareMode}">${projectionState.compareMode ? "One house" : "Compare"}</button>
+        ${spatialToolButtons(projectionState, ["rooms", "services", "evidence"])}
       </div>
     </section>
   `, { nav: false, flush: true });
@@ -363,78 +419,152 @@ function projectionRoomState(room, flowTemperature) {
   };
 }
 
-function projectionTwin({ label, rooms, flow, selectedSlug, locked = false }) {
-  const selected = rooms.find((room) => room.slug === selectedSlug) || rooms[0];
+function spatialPlan({ rooms, selectedSlug, mode, state, flow, reviewObjects = [] }) {
+  const zoom = state.zoom.toFixed(2);
+  const layerClass = [
+    state.layers.rooms === false ? "hide-rooms" : "",
+    state.layers.services === false ? "hide-services" : "",
+    state.layers.evidence === false ? "hide-evidence" : "",
+    state.layers.objects === false ? "hide-objects" : ""
+  ].join(" ");
+
   return `
-    <div class="projection-world focus-${selected.slug} ${locked ? "locked" : ""}" style="--flow:${flow}; --scop:${scopAt(flow)};" aria-label="${label}: flow temperature ${flow} degrees Celsius">
-      <svg viewBox="0 0 1000 680" role="img" aria-label="Interactive house cutaway">
+    <div class="spatial-model ${layerClass}" style="--zoom:${zoom}; --scop:${flow ? scopAt(flow) : 0};" aria-label="Top-down floor plan spatial Twin">
+      <svg viewBox="0 0 960 640" role="img" aria-label="Top-down floor plan with rooms, objects and pipework">
         <defs>
-          <linearGradient id="glassSkin-${flow}-${label.replace(/\s/g, "")}" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffffff" stop-opacity=".86"/>
-            <stop offset="1" stop-color="#d7e4e7" stop-opacity=".5"/>
-          </linearGradient>
-          <filter id="twinShadow-${flow}-${label.replace(/\s/g, "")}"><feDropShadow dx="0" dy="28" stdDeviation="24" flood-color="#1f303a" flood-opacity=".16"/></filter>
-          <pattern id="sufficientPattern-${flow}-${label.replace(/\s/g, "")}" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M1 11 L11 1" stroke="rgba(37,102,88,.34)" stroke-width="2"/></pattern>
-          <pattern id="marginalPattern-${flow}-${label.replace(/\s/g, "")}" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0 5 H10" stroke="rgba(128,94,34,.38)" stroke-width="2"/></pattern>
-          <pattern id="undersizedPattern-${flow}-${label.replace(/\s/g, "")}" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0 0 L10 10 M10 0 L0 10" stroke="rgba(128,55,60,.38)" stroke-width="1.7"/></pattern>
+          <filter id="planShadow"><feDropShadow dx="0" dy="26" stdDeviation="24" flood-color="#24343d" flood-opacity=".12"/></filter>
         </defs>
-
-        <g class="projection-camera">
-          <ellipse class="site-shadow" cx="500" cy="604" rx="360" ry="46"/>
-          <path class="roof-plane" d="M250 286 L500 128 L772 286 L512 352 Z"/>
-          <path class="left-wall" d="M246 286 L512 352 L512 532 L246 466 Z"/>
-          <path class="right-wall" d="M512 352 L772 286 L772 478 L512 532 Z"/>
-          <path class="cutaway-edge" d="M246 286 L500 128 L772 286 L772 478 L512 532 L246 466 Z" filter="url(#twinShadow-${flow}-${label.replace(/\s/g, "")})"/>
-
-          ${rooms.map((room) => `<path class="living-room ${room.status} ${room.slug === selectedSlug ? "selected" : "dimmed"}" d="${room.zone}"/>`).join("")}
-          <path class="structure-line" d="M512 240 V532 M332 386 L512 350 L758 304 M246 352 L512 286 L758 240"/>
-
-          <g class="heat-source ${flow < 55 ? "quiet" : "firing"}">
-            <rect x="346" y="388" width="96" height="116" rx="12"/>
-            <circle cx="394" cy="430" r="22"/>
-            <text x="394" y="536" text-anchor="middle">SCOP ${scopAt(flow)}</text>
+        <g class="plan-camera">
+          <path class="site-boundary" d="M118 46 H844 V576 H118 Z" filter="url(#planShadow)"/>
+          <g class="room-layer">
+            ${rooms.map((room) => `<path class="plan-room ${room.status || ""} ${room.slug === selectedSlug ? "selected" : ""}" d="${room.zone}"/>`).join("")}
+            <path class="plan-walls" d="M142 74 H820 V548 H142 Z M270 74 V548 M318 302 H820 M510 302 V548 M690 74 V302"/>
           </g>
-
-          <g class="pipework">
-            ${rooms.map((room) => `<path class="pipe ${room.slug === selectedSlug ? "selected" : ""} ${room.status}" d="${room.pipe}"/>`).join("")}
+          <g class="service-layer">
+            <path class="service-spine" d="M318 402 H430 V188 M430 424 H612 M430 194 H720"/>
+            ${rooms.map((room) => room.pipe ? `<path class="plan-pipe ${room.slug === selectedSlug ? "selected" : ""} ${room.status || ""}" d="${room.pipe}"/>` : "").join("")}
+            ${mode === "projection" ? rooms.map((room) => `<path class="heat-loss ${room.slug === selectedSlug ? "selected" : ""} ${room.status}" d="${room.loss}" style="--loss:${room.lossScale}"/>`).join("") : ""}
           </g>
-
-          <g class="loss-field">
-            ${rooms.map((room) => `<path class="loss ${room.slug === selectedSlug ? "selected" : ""} ${room.status}" d="${room.loss}" style="--loss:${room.lossScale}"/>`).join("")}
+          <g class="object-layer">
+            ${mode === "projection" ? rooms.map((room) => radiatorMarker(room, selectedSlug, flow)).join("") : reviewObjects.map((object) => reviewMarker(object, selectedSlug)).join("")}
           </g>
-
-          <g class="emitters">
-            ${rooms.map((room) => `
-              <g class="radiator ${room.status} ${room.slug === selectedSlug ? "selected" : ""}" tabindex="0" role="button" data-projection-room="${room.slug}" aria-label="${room.name}: ${room.status} at ${flow} degrees Celsius" style="--heat:${room.heatScale}">
-                <path class="emitter-body" d="${room.emitter}"/>
-                <path class="emitter-fins" d="${emitterFins(room)}"/>
-                <circle class="heat-pulse" cx="${room.x}" cy="${room.y}" r="${Math.round(28 + room.heatScale * 30)}"/>
-                <text x="${room.x}" y="${room.y - 36}" text-anchor="middle">${room.status}</text>
-              </g>
-            `).join("")}
+          <g class="evidence-layer">
+            ${mode === "review" ? reviewObjects.map((object) => evidenceRay(object, selectedSlug)).join("") : `<text class="scop-chip" x="318" y="384">SCOP ${scopAt(flow)}</text>`}
           </g>
         </g>
       </svg>
-      <span class="house-caption">${label}</span>
     </div>
   `;
 }
 
-function emitterFins(room) {
-  const startX = room.x - 20;
-  return [0, 12, 24, 36].map((offset) => `M${startX + offset} ${room.y - 14} l0 26`).join(" ");
+function radiatorMarker(room, selectedSlug, flow) {
+  return `
+    <g class="plan-radiator ${room.status} ${room.slug === selectedSlug ? "selected" : ""}" tabindex="0" role="button" data-projection-room="${room.slug}" aria-label="${room.name}: ${room.status} at ${flow} degrees Celsius" style="--heat:${room.heatScale}">
+      <path class="radiator-body" d="${room.emitter}"/>
+      <path class="radiator-fins" d="${radiatorFins(room)}"/>
+      <circle class="plan-heat" cx="${room.x}" cy="${room.y}" r="${Math.round(22 + room.heatScale * 28)}"/>
+      <text x="${room.x}" y="${room.y - 24}" text-anchor="middle">${room.status}</text>
+    </g>
+  `;
 }
 
-function objectWhisper(room, flow) {
-  const left = Math.min(78, Math.max(18, room.x / 10));
-  const top = Math.min(72, Math.max(18, room.y / 6.8));
+function radiatorFins(room) {
+  const startX = room.x - 22;
+  return [0, 14, 28, 42].map((offset) => `M${startX + offset} ${room.y - 12} v24`).join(" ");
+}
+
+function projectionObjectNote(room, flow) {
   const needOutput = room.status === "undersized" ? "would need more emitter output" : `${room.status} at this temperature`;
   return `
-    <div class="object-whisper ${room.status}" style="left:${left}%;top:${top}%">
+    <div class="object-whisper ${room.status}" style="left:${room.x / 9.6}%;top:${room.y / 6.4}%">
       <span>${room.name}</span>
       <strong>${room.output} W / ${room.demand} W</strong>
       <em>${needOutput}</em>
       <p>${room.note}</p>
+    </div>
+  `;
+}
+
+function spatialToolButtons(state, layers) {
+  return `
+    <button type="button" data-spatial-zoom="-1" aria-label="Zoom out">-</button>
+    <button type="button" data-spatial-zoom="1" aria-label="Zoom in">+</button>
+    <button type="button" class="${state.tilt ? "active" : ""}" data-spatial-tilt aria-pressed="${state.tilt}">Tilt</button>
+    ${layers.map((layer) => `<button type="button" class="${state.layers[layer] ? "active" : ""}" data-spatial-layer="${layer}" aria-pressed="${state.layers[layer]}">${layer}</button>`).join("")}
+  `;
+}
+
+function captureReviewPage() {
+  const objects = captureReview.objects.map((object) => ({
+    ...object,
+    status: captureState.statuses[object.slug] || object.status
+  }));
+  const selected = objects.find((object) => object.slug === captureState.selectedObject) || objects[0];
+  const rooms = heatPumpProjection.rooms.map((room) => ({ ...room, status: "" }));
+
+  return shell(`
+    <section class="spatial-twin review ${captureState.tilt ? "tilted" : ""}" aria-label="Capture Review spatial Twin">
+      <a class="projection-exit" ${link("/home")}>Daedalus</a>
+      <div class="projection-name">
+        <span>Capture review</span>
+        <strong>${captureReview.question}</strong>
+      </div>
+      <div class="spatial-stage">
+        ${spatialPlan({
+          rooms,
+          selectedSlug: selected.slug,
+          mode: "review",
+          state: captureState,
+          reviewObjects: objects
+        })}
+      </div>
+      ${reviewObjectNote(selected)}
+      <div class="spatial-controls review-actions" aria-label="Capture review actions">
+        ${["confirm", "correct", "leave unknown", "needs another look"].map((action) => `<button type="button" class="${selected.status === action ? "active" : ""}" data-review-action="${action}">${action}</button>`).join("")}
+        ${spatialToolButtons(captureState, ["objects", "services", "evidence"])}
+      </div>
+    </section>
+  `, { nav: false, flush: true });
+}
+
+function statusClass(status) {
+  return status.replace(/\s+/g, "-");
+}
+
+function reviewMarker(object, selectedSlug) {
+  return `
+    <g class="review-object ${statusClass(object.status)} ${object.slug === selectedSlug ? "selected" : ""}" tabindex="0" role="button" data-review-object="${object.slug}" aria-label="${object.label}: ${object.status}">
+      <circle cx="${object.x}" cy="${object.y}" r="18"/>
+      <path d="${reviewIcon(object.type, object.x, object.y)}"/>
+      <text x="${object.x}" y="${object.y + 38}" text-anchor="middle">${object.label}</text>
+    </g>
+  `;
+}
+
+function reviewIcon(type, x, y) {
+  if (type === "heating") return `M${x - 8} ${y - 4} h16 M${x - 8} ${y + 4} h16`;
+  if (type === "ventilation") return `M${x - 8} ${y} c8 -12 16 -12 16 0 c0 12 -8 12 -16 0`;
+  if (type === "controls") return `M${x - 8} ${y - 8} h16 v16 h-16 Z`;
+  return `M${x} ${y - 10} v20 M${x - 10} ${y} h20`;
+}
+
+function evidenceRay(object, selectedSlug) {
+  return `
+    <g class="evidence-ray ${object.slug === selectedSlug ? "selected" : ""}">
+      <path d="M${object.x} ${object.y} C${object.x + 46} ${object.y - 58} ${object.x + 116} ${object.y - 54} ${object.x + 150} ${object.y - 88}"/>
+      <text x="${object.x + 158}" y="${object.y - 86}">${object.evidenceType}</text>
+    </g>
+  `;
+}
+
+function reviewObjectNote(object) {
+  return `
+    <div class="object-whisper review-note ${statusClass(object.status)}" style="left:${object.x / 9.6}%;top:${object.y / 6.4}%">
+      <span>${object.uncertainty} uncertainty</span>
+      <strong>${object.label}</strong>
+      <em>${object.status}</em>
+      <p>${object.evidence}</p>
+      <p>${object.transcript}</p>
     </div>
   `;
 }
@@ -662,6 +792,7 @@ function viewFor(path) {
   if (path === "/home") return home();
   if (path === "/explore") return explore();
   if (path === "/heat-pump-projection") return heatPumpProjectionPage();
+  if (path === "/capture-review") return captureReviewPage();
   if (path.startsWith("/rooms/")) return room(path.split("/").pop());
   if (path.startsWith("/components/")) return component(path.split("/").pop());
   if (path === "/understanding") return understanding();
