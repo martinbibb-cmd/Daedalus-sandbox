@@ -198,10 +198,10 @@ export const twin = {
 
 export const heatPumpProjection = {
   presets: [
-    { label: "Current boiler 70°C", value: 70 },
-    { label: "Transitional 55°C", value: 55 },
-    { label: "Heat pump target 45°C", value: 45 },
-    { label: "Low-temp ideal 40°C", value: 40 }
+    { label: "70", value: 70 },
+    { label: "55", value: 55 },
+    { label: "45", value: 45 },
+    { label: "40", value: 40 }
   ],
   rooms: [
     {
@@ -209,22 +209,26 @@ export const heatPumpProjection = {
       name: "Kitchen",
       demand: 1620,
       baseOutput: 1780,
-      x: 624,
-      y: 468,
-      marker: "column radiator",
-      change:
-        "As flow temperature lowers, the same radiator gives out less heat. The rear extension glazing means this room is affected earlier than the hall."
+      x: 640,
+      y: 424,
+      zone: "M512 350 L758 304 L758 478 L512 532 Z",
+      emitter: "M600 420 l74 -14 0 34 -74 14 Z",
+      pipe: "M394 430 C470 410 536 420 620 430",
+      loss: "M690 350 C724 330 750 330 778 352",
+      note: "Lower flow makes this rear room affected earlier because the emitter gives out less heat."
     },
     {
       slug: "utility",
       name: "Utility",
       demand: 760,
       baseOutput: 1120,
-      x: 414,
-      y: 470,
-      marker: "panel radiator",
-      change:
-        "This compact service room has a smaller modelled demand, so the existing emitter remains sufficient across more of the slider range."
+      x: 410,
+      y: 430,
+      zone: "M332 386 L512 350 L512 532 L332 496 Z",
+      emitter: "M374 424 l62 -12 0 30 -62 12 Z",
+      pipe: "M394 430 C400 430 410 430 428 430",
+      loss: "M360 392 C338 374 316 370 288 382",
+      note: "The smaller service space stays sufficient across more of the mocked projection."
     },
     {
       slug: "loft",
@@ -232,36 +236,41 @@ export const heatPumpProjection = {
       demand: 1180,
       baseOutput: 1260,
       x: 500,
-      y: 218,
-      marker: "low profile radiator",
-      change:
-        "Lower flow temperature reduces available output. Loft fabric uncertainty makes the status more sensitive in this mocked example."
+      y: 214,
+      zone: "M314 240 L500 118 L690 240 L512 286 Z",
+      emitter: "M464 232 l72 -14 0 28 -72 14 Z",
+      pipe: "M394 430 C420 346 458 276 500 238",
+      loss: "M500 118 C538 96 588 104 626 130",
+      note: "The loft room is sensitive because its fabric assumptions are still visible in the twin."
     },
     {
       slug: "bathroom",
       name: "Bathroom",
       demand: 920,
       baseOutput: 980,
-      x: 658,
-      y: 344,
-      marker: "towel emitter",
-      change:
-        "At lower flow temperature the towel emitter delivers less heat, so the room becomes marginal before it becomes undersized."
+      x: 654,
+      y: 310,
+      zone: "M512 286 L758 240 L758 304 L512 350 Z",
+      emitter: "M626 308 l60 -12 0 32 -60 12 Z",
+      pipe: "M394 430 C470 342 556 310 654 322",
+      loss: "M728 248 C760 238 786 244 808 264",
+      note: "As flow drops, the towel emitter becomes marginal before it becomes undersized."
     },
     {
       slug: "hall",
       name: "Hall",
       demand: 1040,
       baseOutput: 1420,
-      x: 322,
-      y: 340,
-      marker: "hall radiator",
-      change:
-        "The hall has a central position and modelled demand below its current emitter output, so it changes state later in the projection."
+      x: 334,
+      y: 318,
+      zone: "M246 286 L512 240 L512 350 L332 386 L246 352 Z",
+      emitter: "M296 318 l70 -14 0 32 -70 14 Z",
+      pipe: "M394 430 C370 380 350 344 334 318",
+      loss: "M250 300 C220 286 198 292 176 312",
+      note: "The central hallway changes later because the modelled emitter output stays closer to demand."
     }
   ]
 };
-
 export const navItems = [
   ["Home", "/home"],
   ["Explore", "/explore"],
