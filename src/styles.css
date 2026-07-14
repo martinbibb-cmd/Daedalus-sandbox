@@ -386,45 +386,6 @@ p { color: var(--muted); line-height: 1.38; }
   gap: 14px;
 }
 
-.flow-visual {
-  position: relative;
-  min-height: 560px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background:
-    radial-gradient(circle at 24% 56%, rgba(255,159,10,.3), transparent 10%),
-    radial-gradient(circle at 68% 30%, rgba(10,132,255,.25), transparent 14%),
-    rgba(24,29,35,.9);
-  overflow: hidden;
-}
-
-.source,
-.room-load,
-.bottleneck {
-  position: absolute;
-  z-index: 3;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-weight: 900;
-  background: rgba(0,0,0,.55);
-}
-
-.source { left: 16%; top: 52%; color: var(--amber); }
-.room-load.kitchen { right: 12%; top: 28%; color: var(--red); }
-.room-load.hall { left: 52%; bottom: 20%; color: var(--green); }
-.bottleneck { left: 44%; top: 45%; color: var(--red); border: 1px solid rgba(255,69,58,.5); }
-
-.pipe {
-  position: absolute;
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--amber), var(--red));
-  transform-origin: left center;
-}
-
-.pipe.one { left: 26%; top: 57%; width: 46%; transform: rotate(-26deg); }
-.pipe.two { left: 26%; top: 57%; width: 38%; transform: rotate(22deg); background: linear-gradient(90deg, var(--amber), var(--green)); }
-
 .timeline {
   display: grid;
   gap: 10px;
@@ -1155,59 +1116,217 @@ p { color: var(--muted); line-height: 1.38; }
   background: #fff;
 }
 
-.system-diagram {
+.graphic-twin {
   position: relative;
   min-height: 420px;
   border-radius: 16px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 30% 40%, rgba(255, 159, 10, .18), transparent 18%),
-    radial-gradient(circle at 70% 64%, rgba(10, 132, 255, .14), transparent 22%),
+    linear-gradient(140deg, rgba(255,255,255,.08), transparent 42%),
+    radial-gradient(circle at 18% 22%, rgba(255, 159, 10, .12), transparent 18%),
+    radial-gradient(circle at 78% 68%, rgba(10, 132, 255, .12), transparent 22%),
     rgba(8, 11, 15, .76);
 }
 
-.map-node {
+.house-shell {
+  position: absolute;
+  inset: 22px;
+  border: 2px solid rgba(255,255,255,.18);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, transparent 49.4%, rgba(255,255,255,.16) 49.7%, rgba(255,255,255,.16) 50.3%, transparent 50.6%),
+    linear-gradient(0deg, transparent 49.4%, rgba(255,255,255,.16) 49.7%, rgba(255,255,255,.16) 50.3%, transparent 50.6%),
+    rgba(255,255,255,.04);
+  box-shadow: inset 0 0 0 999px rgba(0,0,0,.04);
+}
+
+.room-zone,
+.appliance,
+.system-overlay {
   position: absolute;
   z-index: 2;
-  min-width: 136px;
-  min-height: 78px;
-  padding: 12px;
-  border-radius: 14px;
-  display: grid;
-  align-content: center;
-  gap: 5px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.07);
+  color: #fff;
   text-align: left;
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 16px 34px rgba(0,0,0,.22);
+  box-shadow: 0 12px 30px rgba(0,0,0,.16);
 }
 
-.map-node strong { font-size: 18px; }
-.map-node span { color: var(--muted); font-weight: 800; }
-.map-node.selected {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 2px rgba(10,132,255,.42), 0 16px 34px rgba(0,0,0,.22);
+.room-zone {
+  padding: 11px;
+  display: grid;
+  align-content: start;
+  gap: 3px;
 }
 
-.map-node.heating { left: 36%; top: 38%; }
-.map-node.boiler { left: 6%; top: 42%; border-color: rgba(255,159,10,.5); }
-.map-node.primary-pipework { left: 36%; bottom: 10%; border-color: rgba(255,69,58,.45); }
-.map-node.controls { right: 6%; top: 24%; border-color: rgba(191,90,242,.45); }
-.map-node.heat-loss { right: 6%; bottom: 16%; border-color: rgba(50,215,75,.45); }
+.room-zone strong,
+.appliance strong,
+.system-overlay span {
+  font-size: 15px;
+  line-height: 1.05;
+}
 
-.edge {
+.room-zone span,
+.appliance em {
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.room-zone.kitchen { left: 6%; top: 9%; width: 38%; height: 36%; }
+.room-zone.lounge { right: 7%; top: 9%; width: 43%; height: 48%; }
+.room-zone.hall { left: 6%; bottom: 10%; width: 42%; height: 36%; }
+.room-zone.utility { right: 7%; bottom: 10%; width: 43%; height: 29%; }
+
+.appliance.boiler-object {
+  left: 15%;
+  top: 20%;
+  width: 74px;
+  height: 106px;
+  padding: 9px;
+  border-color: rgba(255,159,10,.56);
+  display: grid;
+  align-content: end;
+  gap: 3px;
+}
+
+.appliance-body {
   position: absolute;
-  z-index: 1;
-  height: 4px;
+  left: 18px;
+  top: 10px;
+  width: 38px;
+  height: 62px;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 10px 20px rgba(0,0,0,.28);
+}
+
+.appliance.selected,
+.system-overlay.selected,
+.room-zone:focus-visible {
+  outline: 3px solid rgba(10,132,255,.55);
+  outline-offset: 2px;
+}
+
+.appliance.active .appliance-body {
+  box-shadow: 0 0 0 4px rgba(255,159,10,.42), 0 12px 22px rgba(0,0,0,.3);
+}
+
+.system-overlay {
+  min-height: 30px;
+  padding: 5px 10px;
+  display: grid;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.system-overlay.primary-pipe {
+  left: 24%;
+  top: 45%;
+  width: 55%;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  background: #36c4ff;
   border-radius: 999px;
-  background: rgba(255,255,255,.22);
+  transform: rotate(7deg);
   transform-origin: left center;
 }
 
-.edge.e1 { left: 25%; top: 51%; width: 23%; transform: rotate(-2deg); background: rgba(255,159,10,.7); }
-.edge.e2 { left: 48%; top: 58%; width: 20%; transform: rotate(60deg); background: rgba(255,69,58,.7); }
-.edge.e3 { left: 55%; top: 44%; width: 22%; transform: rotate(-28deg); background: rgba(191,90,242,.68); }
-.edge.e4 { left: 58%; top: 55%; width: 23%; transform: rotate(30deg); background: rgba(50,215,75,.68); }
+.system-overlay.primary-pipe span {
+  position: absolute;
+  left: 24%;
+  top: -32px;
+  transform: rotate(-7deg);
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.56);
+}
+
+.system-overlay.primary-pipe.constraint,
+.system-overlay.primary-pipe.active {
+  background: #ff453a;
+  box-shadow: 0 0 0 4px rgba(255,69,58,.22);
+}
+
+.system-overlay.control-link {
+  right: 12%;
+  top: 28%;
+  border-color: rgba(191,90,242,.55);
+}
+
+.system-overlay.control-link.limited {
+  border-color: rgba(255,159,10,.65);
+  background: rgba(255,159,10,.16);
+}
+
+.system-overlay.heat-zone {
+  right: 11%;
+  bottom: 18%;
+  width: 31%;
+  height: 22%;
+  border-color: rgba(50,215,75,.42);
+  background: rgba(50,215,75,.11);
+  align-items: end;
+}
+
+.focus-boiler .room-zone:not(.kitchen),
+.focus-boiler .system-overlay:not(.primary-pipe) {
+  opacity: .58;
+}
+
+.evidence-marker {
+  position: absolute;
+  z-index: 5;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #fff;
+  color: #111;
+  border: 2px solid rgba(10,132,255,.65);
+}
+
+.evidence-marker.photo { left: 11%; top: 14%; }
+.evidence-marker.manual { left: 29%; top: 16%; }
+.evidence-marker.declared { left: 23%; top: 38%; }
+
+.graphic-callout {
+  position: absolute;
+  z-index: 4;
+  max-width: 230px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: grid;
+  gap: 3px;
+  background: rgba(7,10,14,.82);
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 16px 36px rgba(0,0,0,.24);
+}
+
+.graphic-callout strong { font-size: 15px; }
+.graphic-callout span { color: var(--muted); font-size: 13px; line-height: 1.25; }
+.boiler-callout { left: 36%; top: 12%; }
+.pipe-callout { right: 9%; top: 51%; border-color: rgba(255,69,58,.48); }
+.controls-callout { right: 11%; top: 19%; border-color: rgba(255,159,10,.5); }
+.bottleneck-callout { left: 44%; bottom: 16%; border-color: rgba(255,69,58,.6); }
+
+.proposed .appliance-body {
+  box-shadow: 0 0 0 5px rgba(255,159,10,.25), 0 10px 20px rgba(0,0,0,.28);
+}
+
+.proposed-copy .graphic-twin,
+.current .graphic-twin {
+  min-height: 300px;
+  margin-top: 12px;
+}
+
+.run-board .graphic-twin {
+  min-height: 520px;
+}
 
 .inspector {
   align-content: start;
@@ -1327,14 +1446,6 @@ button:disabled,
 .impact-chain .unchanged span { color: var(--green); }
 .impact-chain .work span { color: var(--amber); }
 
-.flow-visual .active {
-  box-shadow: 0 0 0 3px rgba(255,159,10,.5);
-}
-
-.flow-visual.has-bottleneck {
-  border-color: rgba(255,69,58,.5);
-}
-
 .timeline div.active {
   border: 1px solid rgba(10,132,255,.55);
   background: rgba(10,132,255,.18);
@@ -1349,17 +1460,21 @@ button:disabled,
     grid-template-columns: 1fr;
   }
 
-  .system-diagram {
+  .graphic-twin {
     min-height: 520px;
   }
 
-  .map-node {
-    min-width: 124px;
+  .house-shell {
+    inset: 14px;
   }
 
-  .map-node.boiler { left: 6%; top: 30%; }
-  .map-node.heating { left: 36%; top: 42%; }
-  .map-node.controls { right: 6%; top: 20%; }
-  .map-node.primary-pipework { left: 24%; bottom: 16%; }
-  .map-node.heat-loss { right: 6%; bottom: 8%; }
+  .room-zone strong,
+  .appliance strong,
+  .system-overlay span {
+    font-size: 13px;
+  }
+
+  .graphic-callout {
+    max-width: 190px;
+  }
 }

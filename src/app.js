@@ -168,17 +168,7 @@ function mainView() {
           ${path.length > 1 ? `<button class="secondary small" data-action="back">Back</button>` : ""}
         </div>
         ${breadcrumb(path)}
-        <div class="system-diagram">
-          ${nodeButton("heating", "Heating system", "System", path)}
-          ${nodeButton("boiler", "Boiler", "Component", path)}
-          ${nodeButton("primary-pipework", "Primary pipework", "Constraint", path)}
-          ${nodeButton("controls", "Controls", "Unknown", path)}
-          ${nodeButton("heat-loss", "Heat-loss", "Candidate", path)}
-          <span class="edge e1"></span>
-          <span class="edge e2"></span>
-          <span class="edge e3"></span>
-          <span class="edge e4"></span>
-        </div>
+        ${graphicTwin("current")}
       </article>
 
       <aside class="panel inspector">
@@ -219,12 +209,75 @@ function breadcrumb(path) {
   `;
 }
 
-function nodeButton(id, label, meta, path) {
+function graphicTwin(mode = "current") {
+  const path = state.selectedPath;
+  const selected = selectedId(state);
+  const isBoilerFocus = path.includes("boiler") || selected === "boiler-evidence";
+  const isProposed = mode === "proposed" && state.proposedTwin;
+  const hasConsequences = Boolean(state.consequences.length);
+  const runStep = mode === "run" ? runTimeline[state.runStep] : null;
+  const bottleneck = runStep?.bottleneck;
+  const boilerOutput = isProposed ? state.proposedTwin.nodes.boiler.outputKw : state.authoritativeTwin.nodes.boiler.outputKw;
   return `
-    <button class="map-node ${id} ${path.includes(id) ? "selected" : ""}" data-action="select" data-value="${id}">
-      <strong>${label}</strong>
-      <span>${meta}</span>
-    </button>
+    <div class="graphic-twin ${mode} ${isBoilerFocus ? "focus-boiler" : ""} ${hasConsequences ? "has-consequences" : ""} ${bottleneck ? "has-bottleneck" : ""}">
+      <div class="house-shell" aria-label="Graphic twin of the property">
+        <button class="room-zone kitchen" data-action="select" data-value="heating">
+          <strong>Kitchen</strong>
+          <span>plant wall</span>
+        </button>
+        <button class="room-zone lounge" data-action="select" data-value="heat-loss">
+          <strong>Lounge</strong>
+          <span>heat demand</span>
+        </button>
+        <button class="room-zone hall" data-action="select" data-value="primary-pipework">
+          <strong>Hall</strong>
+          <span>primary route</span>
+        </button>
+        <button class="room-zone utility" data-action="select" data-value="controls">
+          <strong>Utility</strong>
+          <span>controls</span>
+        </button>
+
+        <button class="appliance boiler-object ${path.includes("boiler") ? "selected" : ""} ${runStep?.active === "boiler" ? "active" : ""}" data-action="select" data-value="boiler">
+          <span class="appliance-body"></span>
+          <strong>Boiler</strong>
+          <em>${boilerOutput} kW</em>
+        </button>
+
+        <button class="system-overlay primary-pipe ${path.includes("primary-pipework") ? "selected" : ""} ${hasConsequences ? "constraint" : ""} ${runStep?.active === "primary-pipework" ? "active" : ""}" data-action="select" data-value="primary-pipework">
+          <span>Primary pipework</span>
+        </button>
+        <button class="system-overlay control-link ${path.includes("controls") ? "selected" : ""} ${hasConsequences ? "limited" : ""}" data-action="select" data-value="controls">
+          <span>Controls</span>
+        </button>
+        <button class="system-overlay heat-zone ${path.includes("heat-loss") ? "selected" : ""}" data-action="select" data-value="heat-loss">
+          <span>Heat-loss evidence</span>
+        </button>
+
+        ${isBoilerFocus ? `
+          <button class="evidence-marker photo" data-action="evidence" aria-label="Boiler photo evidence">Photo</button>
+          <button class="evidence-marker manual" data-action="evidence" aria-label="Manual measurement evidence">Measure</button>
+          <button class="evidence-marker declared" data-action="evidence" aria-label="Declared model evidence">Declared</button>
+          <div class="graphic-callout boiler-callout">
+            <strong>Boiler evidence</strong>
+            <span>Observed photo, manual measurement and declared model remain attached here.</span>
+          </div>
+        ` : ""}
+
+        ${hasConsequences ? `
+          <div class="graphic-callout pipe-callout warning">
+            <strong>Primary constraint</strong>
+            <span>Useful output plateaus before 35 kW reaches rooms.</span>
+          </div>
+          <div class="graphic-callout controls-callout amber">
+            <strong>Controls limit</strong>
+            <span>Current configuration does not request the proposed output.</span>
+          </div>
+        ` : ""}
+
+        ${bottleneck ? `<div class="graphic-callout bottleneck-callout"><strong>Bottleneck</strong><span>${bottleneck}</span></div>` : ""}
+      </div>
+    </div>
   `;
 }
 
@@ -365,11 +418,13 @@ function whatIfView() {
         <p class="eyebrow">Current Reality</p>
         <h2>${state.authoritativeTwin.nodes.boiler.outputKw} kW boiler</h2>
         <p>The authoritative Twin remains unchanged.</p>
+        ${graphicTwin("current")}
       </article>
       <article class="panel proposed-copy">
         <p class="eyebrow">Proposed What If Twin</p>
         <h2>${hasProposal ? `${state.proposedTwin.nodes.boiler.outputKw} kW boiler` : "No proposed branch yet"}</h2>
         <p>${hasProposal ? "This is a cloned branch with a change set." : "Create a What If copy before making changes."}</p>
+        ${hasProposal ? graphicTwin("proposed") : ""}
       </article>
     </section>
 
@@ -411,14 +466,7 @@ function runView() {
       </div>
     </section>
     <section class="run-board">
-      <div class="flow-visual ${step.bottleneck ? "has-bottleneck" : ""}">
-        <span class="source ${step.active === "boiler" ? "active" : ""}">Boiler</span>
-        <span class="pipe one ${step.active === "primary-pipework" ? "active" : ""}"></span>
-        <span class="pipe two"></span>
-        <span class="room-load kitchen">Kitchen slow</span>
-        <span class="room-load hall">Hall waiting</span>
-        ${step.bottleneck ? `<span class="bottleneck">Bottleneck: ${step.bottleneck}</span>` : ""}
-      </div>
+      ${graphicTwin("run")}
       <aside class="panel">
         <p class="eyebrow">${step.time}</p>
         <h2>${step.title}</h2>

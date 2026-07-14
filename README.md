@@ -50,11 +50,14 @@ Older links such as `#/home`, `#/command`, `#/reasoning`, and `#/scenarios` ente
 ## Product Rules Demonstrated
 
 - The Twin is the noun; What If and Run are verbs applied to it.
+- The graph is internal implementation. The user sees a graphic Twin of the house, system, room or component.
+- Graph-derived consequences must be projected back onto the house/system graphic.
 - Tighten is temporary review for a fresh import, not a permanent workspace.
-- Zoom is contextual selection and drill-down through the Twin graph.
+- Zoom is contextual selection and drill-down through the graphic Twin.
 - Explain is contextual to the selected object or behaviour.
 - What If clones authoritative reality and never mutates it.
 - Run explains behaviour and bottlenecks over time; it does not recommend a product.
+- A visible node-and-edge graph is not a normal product view.
 - Visible controls must change data, navigation, selection, rendered information, simulation state, or a contextual explanation.
 
 ## Production Boundary
