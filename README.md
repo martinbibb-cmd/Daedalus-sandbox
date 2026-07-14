@@ -4,11 +4,12 @@ Daedalus Sandbox is a disposable product prototype.
 
 Its primary purpose is a proof of concept for Daedalus Main:
 
-- imported Capture Package review
-- provenance-first Evidence Twin
-- confirmed, candidate, unknown and conflicting evidence
-- command-facing status
-- scenario and explanation lenses
+- Tighten imported Capture Packages before they become authoritative
+- present the living Twin as the default interface
+- preserve House, System and Home as underlying twin pages
+- clone the current Twin for What If changes
+- Run systems over time to expose operation and bottlenecks
+- use Zoom and Explain as verbs across the Twin, What If and Run views
 
 It also includes a Capture demo lens because the current Capture interaction is useful to review alongside Main:
 
@@ -34,12 +35,13 @@ Open `http://localhost:5174`.
 ## Current Routes
 
 - `#/main`
+- `#/tighten`
 - `#/twin`
-- `#/reasoning`
-- `#/scenarios`
+- `#/what-if`
+- `#/run`
 - `#/capture-demo`
 
-`#/home` and `#/command` redirect to the current Main proof-of-concept entry point for older links.
+`#/home`, `#/main`, `#/command`, `#/reasoning`, and `#/scenarios` redirect to the current Twin entry point for older links.
 
 ## Sandbox Rules
 
