@@ -1,30 +1,29 @@
 # Daedalus Sandbox
 
-Daedalus Sandbox is a disposable product prototype.
+Daedalus Sandbox is a disposable product prototype. It is not an architectural authority and its implementation must not be copied directly into Main.
 
-Its primary purpose is a proof of concept for Daedalus Main:
+Its current purpose is to demonstrate one coherent Daedalus Main interaction:
 
-- Tighten imported Capture Packages before they become authoritative
-- present the living Twin as the default interface
-- preserve House, System and Home as underlying twin pages
-- clone the current Twin for What If changes
-- Run systems over time to expose operation and bottlenecks
-- use Zoom and Explain as verbs across the Twin, What If and Run views
+1. Open `#/main`.
+2. Inspect the current authoritative combined Twin.
+3. Select the heating system.
+4. Select the boiler.
+5. Drill down to boiler evidence.
+6. Explain the selected boiler.
+7. Create a What If copy of the current Twin.
+8. Change boiler output from 24 kW to 35 kW.
+9. See consequences propagate to primary pipework, controls and heat-loss context.
+10. Run the proposed system through a visible timeline.
+11. See the bottleneck occur.
+12. Discard the proposed Twin and return to unchanged current reality.
 
-It also includes a Capture demo lens because the current Capture interaction is useful to review alongside Main:
+All data is mocked. The point is visible behaviour, not production architecture.
 
-- Capture Command / property shell
-- RoomPlan Capture Session
-- semantic evidence tags
-- Capture handoff bundle to Main
-
-The sandbox is not production software and is not an architectural authority. It may hard-code data, fake state, and compress workflows so the current design direction can be reviewed quickly.
-
-## Live demo
+## Live Demo
 
 https://martinbibb-cmd.github.io/Daedalus-sandbox/
 
-## Run locally
+## Run Locally
 
 ```bash
 npm run dev
@@ -32,33 +31,49 @@ npm run dev
 
 Open `http://localhost:5174`.
 
-## Current Routes
+## Test
 
-- `#/main`
-- `#/tighten`
-- `#/twin`
-- `#/what-if`
-- `#/run`
-- `#/capture-demo`
+```bash
+npm test
+```
 
-`#/home`, `#/main`, `#/command`, `#/reasoning`, and `#/scenarios` redirect to the current Twin entry point for older links.
+## Routes
 
-## Sandbox Rules
+- `#/main` - primary Main proof-of-concept entry point
+- `#/tighten` - temporary import review
+- `#/what-if` - proposed Twin branch and comparison
+- `#/run` - mocked time-based system behaviour
+- `#/capture-demo` - separate Capture interaction demo
 
-Nothing here changes the Constitution, DESIGN_FREEZE_v3, contracts, production storage, authentication, or app architecture.
+Older links such as `#/home`, `#/command`, `#/reasoning`, and `#/scenarios` enter `#/main`.
 
-Production implementation remains owned by the real repositories:
+## Product Rules Demonstrated
+
+- The Twin is the noun; What If and Run are verbs applied to it.
+- Tighten is temporary review for a fresh import, not a permanent workspace.
+- Zoom is contextual selection and drill-down through the Twin graph.
+- Explain is contextual to the selected object or behaviour.
+- What If clones authoritative reality and never mutates it.
+- Run explains behaviour and bottlenecks over time; it does not recommend a product.
+- Visible controls must change data, navigation, selection, rendered information, simulation state, or a contextual explanation.
+
+## Production Boundary
+
+Nothing here changes the Constitution, Capture architecture, Contracts schemas, Platform storage, authentication, or real Main implementation.
+
+Production ownership remains:
 
 - Capture owns capture UI and evidence collection.
-- Main owns reasoning and explanation.
+- Main owns reasoning, explanation, What If branches and Run behaviour.
 - Contracts owns shared schemas.
 - Platform owns hosted services and shared infrastructure.
+- Sandbox owns disposable UX experiments.
 
-## Editing
+## Files
 
-The app uses plain ES modules and CSS:
-
-- `src/data.js` contains mocked Main and Capture demo state.
-- `src/app.js` contains route rendering and UI fragments.
-- `src/styles.css` contains the visual system and responsive layout.
+- `src/data.js` contains mocked Twin, evidence, Tighten, What If and Run data.
+- `src/model.js` contains pure state transitions used by tests.
+- `src/app.js` renders the disposable prototype.
+- `src/styles.css` contains the visual system.
+- `tests/model.test.js` covers the important state guarantees.
 - `server.mjs` is a tiny static server with SPA fallback.
