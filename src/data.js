@@ -1,52 +1,73 @@
 export const property = {
   name: "Haven",
   address: "Hundred Lane, Lymington, SO41 5RG",
-  status: "Ready for Capture",
+  type: "Detached house",
+  period: "1900-1930",
+  status: "Capture imported",
   roomsCaptured: 4,
   evidenceItems: 38,
   proposedItems: 7,
+  unknowns: 5,
   lastSync: "Today 18:45"
 };
 
-export const roomPlanSession = {
-  id: "capture-flight-2026-07-14",
-  state: "RoomPlan ready",
-  rooms: ["Kitchen", "Hall", "Lounge", "Utility"],
-  artifacts: ["CapturedRoom JSON", "Daedalus manifest", "RoomPlan index", "Session bundle"]
+export const mainModel = {
+  summary:
+    "Main receives a Capture Package, preserves provenance, separates confirmed evidence from candidates, and explains what the property evidence means.",
+  facts: [
+    ["Observed", "RoomPlan captured 4 bounded rooms"],
+    ["Observed", "Boiler location recorded as proposed/declared evidence"],
+    ["Candidate", "Kitchen appears to contain primary heating plant"],
+    ["Unknown", "Cylinder type not confirmed"],
+    ["Conflict", "One proposed appliance overlaps existing cupboard geometry"]
+  ],
+  commands: [
+    {
+      name: "House Command",
+      state: "Ready",
+      text: "Room geometry, openings and captured spaces are available for inspection."
+    },
+    {
+      name: "Systems Command",
+      state: "Candidate evidence",
+      text: "Heat source, hot water and electrical observations are present but not confirmed truth."
+    },
+    {
+      name: "Home Command",
+      state: "Needs transcript",
+      text: "Occupancy, usage and performance context are not yet complete."
+    },
+    {
+      name: "Safety Command",
+      state: "Watchlist",
+      text: "Safety observations are preserved separately from recommendations."
+    }
+  ],
+  questions: [
+    "What do we know about the heating system?",
+    "Which rooms are captured with enough evidence?",
+    "What is still unknown before Main can reason confidently?",
+    "Which proposed changes are not confirmed reality?"
+  ],
+  scenarios: [
+    ["Replace boiler", "Uses proposed object evidence but does not treat it as installed."],
+    ["Improve hot water", "Blocked until cylinder type and occupancy demand are known."],
+    ["Review room evidence", "Shows geometry, photos and candidate observations by provenance."]
+  ]
 };
 
-export const tagGroups = [
-  {
-    label: "Heat",
-    icon: "heat",
-    items: ["Gas", "Electric", "LPG", "Oil", "Heat Pump"]
-  },
-  {
-    label: "Hot Water",
-    icon: "drop",
-    items: ["On demand", "Unvented", "Open vented", "Thermal store", "Community"]
-  },
-  {
-    label: "Electrical",
-    icon: "bolt",
-    items: ["Consumer unit", "Isolator", "Loop test", "RCD", "Supply"]
-  },
-  {
-    label: "Meters",
-    icon: "meter",
-    items: ["Gas meter", "Electric meter", "Water meter", "Heat meter"]
-  },
-  {
-    label: "Emitter",
-    icon: "thermometer",
-    items: ["Radiator", "TRV", "UFH", "Fan coil"]
-  },
-  {
-    label: "Note",
-    icon: "note",
-    items: ["Occupancy", "Usage", "Performance", "Access", "Risk"]
-  }
-];
+export const captureDemo = {
+  sessionId: "capture-flight-2026-07-14",
+  rooms: ["Kitchen", "Hall", "Lounge", "Utility"],
+  tagGroups: [
+    { label: "Heat", icon: "heat", items: ["Gas", "Electric", "LPG", "Oil", "Heat Pump"] },
+    { label: "Hot Water", icon: "drop", items: ["On demand", "Unvented", "Open vented", "Thermal store", "Community"] },
+    { label: "Electrical", icon: "bolt", items: ["Consumer unit", "Isolator", "Loop test", "RCD", "Supply"] },
+    { label: "Meters", icon: "meter", items: ["Gas meter", "Electric meter", "Water meter", "Heat meter"] },
+    { label: "Emitter", icon: "thermometer", items: ["Radiator", "TRV", "UFH", "Fan coil"] },
+    { label: "Note", icon: "note", items: ["Occupancy", "Usage", "Performance", "Access", "Risk"] }
+  ]
+};
 
 export const measurements = [
   {
@@ -66,23 +87,6 @@ export const measurements = [
       { name: "RCD", value: "Pass", unit: "", fields: ["Trip time", "Rating", "Instrument"] },
       { name: "Earth resistance", value: "<1", unit: "ohm", fields: ["Band", "Measured value", "Notes"] }
     ]
-  }
-];
-
-export const stockItems = [
-  {
-    type: "Boiler",
-    make: "Worcester Bosch",
-    model: "Greenstar Ri ErP+ 9-24",
-    dimensions: "390 x 600 x 270 mm",
-    clearance: "5 mm side, 170 mm above, 200 mm below, 600 mm front"
-  },
-  {
-    type: "Cylinder",
-    make: "Generic",
-    model: "Unvented 180 L",
-    dimensions: "545 x 1500 mm",
-    clearance: "Service access front"
   }
 ];
 

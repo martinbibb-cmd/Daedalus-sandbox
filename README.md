@@ -2,13 +2,19 @@
 
 Daedalus Sandbox is a disposable product prototype.
 
-It currently reflects the Capture v2 field workflow:
+Its primary purpose is a proof of concept for Daedalus Main:
+
+- imported Capture Package review
+- provenance-first Evidence Twin
+- confirmed, candidate, unknown and conflicting evidence
+- command-facing status
+- scenario and explanation lenses
+
+It also includes a Capture demo lens because the current Capture interaction is useful to review alongside Main:
 
 - Capture Command / property shell
 - RoomPlan Capture Session
 - semantic evidence tags
-- external measurement tools
-- Workspace / ARKit Proposed Reality
 - Capture handoff bundle to Main
 
 The sandbox is not production software and is not an architectural authority. It may hard-code data, fake state, and compress workflows so the current design direction can be reviewed quickly.
@@ -27,13 +33,13 @@ Open `http://localhost:5174`.
 
 ## Current Routes
 
-- `#/command`
-- `#/roomplan`
-- `#/tools`
-- `#/workspace`
-- `#/handoff`
+- `#/main`
+- `#/twin`
+- `#/reasoning`
+- `#/scenarios`
+- `#/capture-demo`
 
-`#/home` redirects to the current command view for older links.
+`#/home` and `#/command` redirect to the current Main proof-of-concept entry point for older links.
 
 ## Sandbox Rules
 
@@ -50,7 +56,7 @@ Production implementation remains owned by the real repositories:
 
 The app uses plain ES modules and CSS:
 
-- `src/data.js` contains mocked Capture state.
+- `src/data.js` contains mocked Main and Capture demo state.
 - `src/app.js` contains route rendering and UI fragments.
 - `src/styles.css` contains the visual system and responsive layout.
 - `server.mjs` is a tiny static server with SPA fallback.
