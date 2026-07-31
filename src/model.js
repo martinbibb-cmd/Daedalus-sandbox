@@ -31,7 +31,8 @@ export function createInitialState() {
     runTarget: "current",
     runStep: 0,
     runPlaying: false,
-    tagPath: []
+    tagPath: [],
+    tightenDrafts: {}
   };
 }
 
@@ -92,6 +93,31 @@ export function resolveTightenItem(state, itemId, resolutionId = "resolve") {
   return next;
 }
 
+export function updateTightenDraft(state, itemId, value) {
+  const next = clone(state);
+  next.tightenDrafts[itemId] = value;
+  return next;
+}
+
+export function applyManualTightenEdit(state, itemId) {
+  const next = clone(state);
+  const manualValue = (next.tightenDrafts[itemId] || "").trim();
+  if (!manualValue) return next;
+
+  next.reviewItems = next.reviewItems.map((item) => {
+    if (item.id !== itemId) return item;
+    return {
+      ...item,
+      resolved: true,
+      resolutionId: "manual-edit",
+      resolutionLabel: "Manual refinement",
+      manualValue,
+      action: `Manual refinement recorded: ${manualValue}`
+    };
+  });
+  return next;
+}
+
 export function promoteImport(state) {
   const next = clone(state);
   if (!canPromote(next)) return { state: next, promoted: false };
@@ -147,6 +173,7 @@ export function discardWhatIf(state) {
 export function startRun(state, target = state.proposedTwin ? "proposed" : "current") {
   const next = clone(state);
   next.runTarget = target;
+  if (next.runStep >= runTimeline.length - 1) next.runStep = 0;
   next.runPlaying = true;
   return next;
 }

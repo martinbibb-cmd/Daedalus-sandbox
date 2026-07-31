@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   advanceRun,
+  applyManualTightenEdit,
   applyBoilerOutputChange,
   canPromote,
   createInitialState,
@@ -10,7 +11,9 @@ import {
   promoteImport,
   resetRun,
   resolveTightenItem,
-  routeFor
+  routeFor,
+  startRun,
+  updateTightenDraft
 } from "../src/model.js";
 
 test("/main remains the Main entry route", () => {
@@ -65,6 +68,17 @@ test("Run advances and resets", () => {
   assert.equal(reset.runPlaying, false);
 });
 
+test("Run restarts from the first step when replayed from the end", () => {
+  let state = createInitialState();
+  for (let index = 0; index < 10; index += 1) {
+    state = advanceRun(state);
+  }
+
+  const replaying = startRun(state);
+  assert.equal(replaying.runStep, 0);
+  assert.equal(replaying.runPlaying, true);
+});
+
 test("Tighten cannot promote with unresolved blockers", () => {
   const state = createInitialState();
 
@@ -93,4 +107,27 @@ test("Tighten records the chosen resolution rather than only confirming", () => 
   assert.equal(item.resolved, true);
   assert.equal(item.resolutionId, "mark-unknown");
   assert.match(item.action, /explicit unknown/);
+});
+
+test("Tighten supports manual refinement when direct evidence is missing", () => {
+  const drafted = updateTightenDraft(
+    createInitialState(),
+    "unknown-occupancy",
+    "Customer states Bedroom 2 is used by children; keep as customer_statement."
+  );
+  const refined = applyManualTightenEdit(drafted, "unknown-occupancy");
+  const item = refined.reviewItems.find((candidate) => candidate.id === "unknown-occupancy");
+
+  assert.equal(item.resolved, true);
+  assert.equal(item.resolutionId, "manual-edit");
+  assert.match(item.manualValue, /customer_statement/);
+  assert.match(item.action, /Manual refinement recorded/);
+});
+
+test("empty manual refinement does not silently resolve a Tighten item", () => {
+  const refined = applyManualTightenEdit(createInitialState(), "unknown-occupancy");
+  const item = refined.reviewItems.find((candidate) => candidate.id === "unknown-occupancy");
+
+  assert.equal(item.resolved, false);
+  assert.equal(item.manualValue, undefined);
 });

@@ -7,6 +7,7 @@ import {
 } from "./data.js";
 import {
   advanceRun,
+  applyManualTightenEdit,
   applyBoilerOutputChange,
   backOneLevel,
   canPromote,
@@ -23,13 +24,15 @@ import {
   selectNode,
   selectedId,
   selectedNode,
-  startRun
+  startRun,
+  updateTightenDraft
 } from "./model.js";
 
 const app = document.querySelector("#app");
 let state = createInitialState();
 let activeLayer = "all";
 let activeComponentId = "boiler";
+let runTimer = null;
 
 const routes = [
   ["Main", "/main"],
@@ -97,7 +100,20 @@ document.addEventListener("click", (event) => {
   }
 });
 
-window.addEventListener("hashchange", render);
+document.addEventListener("input", (event) => {
+  const field = event.target.closest("[data-tighten-draft]");
+  if (!field) return;
+  state = updateTightenDraft(state, field.dataset.tightenDraft, field.value);
+});
+
+window.addEventListener("hashchange", () => {
+  render();
+  syncRunTimer();
+});
+
+window.addEventListener("beforeunload", () => {
+  if (runTimer) clearInterval(runTimer);
+});
 
 function handleAction(action, value, resolution) {
   if (action === "select") state = selectNode(state, value);
@@ -106,6 +122,7 @@ function handleAction(action, value, resolution) {
   if (action === "explain") state = openExplanation(state, value || "plain");
   if (action === "close-explain") state = { ...state, explanationOpen: false };
   if (action === "resolve") state = resolveTightenItem(state, value, resolution);
+  if (action === "manual-tighten") state = applyManualTightenEdit(state, value);
   if (action === "promote") {
     const result = promoteImport(state);
     state = result.state;
@@ -125,6 +142,21 @@ function handleAction(action, value, resolution) {
   if (action === "advance-run") state = advanceRun(state);
   if (action === "reset-run") state = resetRun(state);
   render();
+  syncRunTimer();
+}
+
+function syncRunTimer() {
+  if (runTimer) {
+    clearInterval(runTimer);
+    runTimer = null;
+  }
+  if (!state.runPlaying) return;
+
+  runTimer = window.setInterval(() => {
+    state = advanceRun(state);
+    render();
+    if (!state.runPlaying) syncRunTimer();
+  }, 1200);
 }
 
 function shell(content) {
@@ -292,13 +324,13 @@ function graphicTwin(mode = "current") {
         </g>
         <g class="route-layer">
           ${spatialFixture.routes.filter((route) => visible(route.domain)).map((route) => `
-            <path class="system-route ${route.domain} ${isRouteSelected(route) ? "selected" : ""} ${runStep?.active === "primary-pipework" && route.id === "primary" ? "active" : ""} ${hasConsequences && route.id === "primary" ? "constraint" : ""}" d="${routePath(route)}"/>
+            <path class="system-route ${route.domain} ${isRouteSelected(route) ? "selected" : ""} ${routeRunClass(route, runStep)} ${hasConsequences && route.id === "primary" ? "constraint" : ""}" d="${routePath(route)}"/>
             ${isRouteSelected(route) ? `<text class="route-label" x="${routeLabelPosition(route).x}" y="${routeLabelPosition(route).y}">${route.label}</text>` : ""}
           `).join("")}
         </g>
         <g class="component-layer">
           ${spatialFixture.components.filter((component) => visible(component.domain)).map((component) => `
-            <g class="component-node ${component.domain} ${component.state} ${activeComponentId === component.id ? "selected" : ""} ${component.id === "boiler" && runStep?.active === "boiler" ? "active" : ""}" data-component="${component.id}" tabindex="0" transform="translate(${component.x} ${component.y})">
+            <g class="component-node ${component.domain} ${component.state} ${activeComponentId === component.id ? "selected" : ""} ${componentRunClass(component, runStep)}" data-component="${component.id}" tabindex="0" transform="translate(${component.x} ${component.y})">
               ${componentShape(component)}
               <text class="component-label" x="0" y="-22">${component.id === "boiler" && isProposed ? `${component.label} ${boilerOutput} kW` : component.label}</text>
             </g>
@@ -311,6 +343,12 @@ function graphicTwin(mode = "current") {
             <text class="warning-label small" x="500" y="220">controls evidence incomplete</text>
           </g>
         ` : ""}
+        ${runStep ? `
+          <g class="run-overlay">
+            <rect x="78" y="546" width="584" height="46" rx="12"/>
+            <text x="102" y="575">${runStep.time} · ${runStep.title}: ${runStep.state}</text>
+          </g>
+        ` : ""}
       </svg>
       <div class="map-caption">
         <strong>${spatialFixture.captureId}</strong>
@@ -318,6 +356,28 @@ function graphicTwin(mode = "current") {
       </div>
     </div>
   `;
+}
+
+function routeRunClass(route, runStep) {
+  if (!runStep) return "";
+  const activeRoutes = {
+    controls: ["power"],
+    boiler: ["primary", "water", "power"],
+    "primary-pipework": ["primary"],
+    "heat-loss": ["primary", "access"]
+  }[runStep.active] || [];
+  return activeRoutes.includes(route.id) ? "active" : "";
+}
+
+function componentRunClass(component, runStep) {
+  if (!runStep) return "";
+  const activeComponents = {
+    controls: ["consumer-unit", "socket"],
+    boiler: ["boiler"],
+    "primary-pipework": ["boiler", "emitter"],
+    "heat-loss": ["emitter", "threshold"]
+  }[runStep.active] || [];
+  return activeComponents.includes(component.id) ? "active" : "";
 }
 
 function relationshipPanel(component) {
@@ -501,6 +561,7 @@ function reviewItem(item) {
       <strong>${item.title}</strong>
       <p>${item.detail}</p>
       ${item.action ? `<em>${item.action}</em>` : ""}
+      ${item.manualValue ? `<q>${item.manualValue}</q>` : ""}
     </article>
   `;
 }
@@ -516,6 +577,11 @@ function resolutionActions(item) {
       ${options.map((option) => `
         <button class="secondary" data-action="resolve" data-value="${item.id}" data-resolution="${option.id}">${option.label}</button>
       `).join("")}
+    </div>
+    <div class="manual-tighten">
+      <label for="manual-${item.id}">Manual refinement when direct evidence is missing</label>
+      <textarea id="manual-${item.id}" data-tighten-draft="${item.id}" rows="4" placeholder="Record the known fact, source, and uncertainty. Example: Customer states Bedroom 2 is used by children; retain as customer_statement, not observed fact.">${state.tightenDrafts?.[item.id] || ""}</textarea>
+      <button class="primary" data-action="manual-tighten" data-value="${item.id}">Record manual refinement</button>
     </div>
   `;
 }
