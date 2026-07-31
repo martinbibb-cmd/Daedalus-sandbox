@@ -34,7 +34,7 @@ let activeComponentId = "boiler";
 const routes = [
   ["Main", "/main"],
   ["Tighten", "/tighten"],
-  ["What If", "/what-if"],
+  ["Clone", "/what-if"],
   ["Run", "/run"],
   ["Capture Demo", "/capture-demo"]
 ];
@@ -72,7 +72,7 @@ document.addEventListener("click", (event) => {
 
   const action = event.target.closest("[data-action]");
   if (action) {
-    handleAction(action.dataset.action, action.dataset.value);
+    handleAction(action.dataset.action, action.dataset.value, action.dataset.resolution);
     return;
   }
 
@@ -99,13 +99,13 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("hashchange", render);
 
-function handleAction(action, value) {
+function handleAction(action, value, resolution) {
   if (action === "select") state = selectNode(state, value);
   if (action === "back") state = backOneLevel(state);
   if (action === "evidence") state = openEvidence(state);
   if (action === "explain") state = openExplanation(state, value || "plain");
   if (action === "close-explain") state = { ...state, explanationOpen: false };
-  if (action === "resolve") state = resolveTightenItem(state, value);
+  if (action === "resolve") state = resolveTightenItem(state, value, resolution);
   if (action === "promote") {
     const result = promoteImport(state);
     state = result.state;
@@ -155,7 +155,7 @@ function titleFor(route) {
   return {
     "/main": "Main",
     "/tighten": "Tighten Import",
-    "/what-if": "What If",
+    "/what-if": "Scenario Twin",
     "/run": "Run",
     "/capture-demo": "Capture Demo"
   }[route] || "Main";
@@ -206,11 +206,12 @@ function mainView() {
         <div class="evidence-chips">
           ${activeComponent.evidence.map((item) => `<span>${item}</span>`).join("")}
         </div>
+        ${relationshipPanel(activeComponent)}
         <div class="inspector-actions">
           ${activeComponent.id === "boiler" ? `
             <button class="secondary" data-action="evidence">${icon("evidence")} Boiler evidence</button>
             <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain boiler</button>
-            <button class="primary" data-action="create-what-if">${icon("branch")} Create What If copy</button>
+            <button class="primary" data-action="create-what-if">${icon("branch")} Create Scenario Twin</button>
           ` : `
             <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain selected layer</button>
           `}
@@ -291,7 +292,8 @@ function graphicTwin(mode = "current") {
         </g>
         <g class="route-layer">
           ${spatialFixture.routes.filter((route) => visible(route.domain)).map((route) => `
-            <polyline class="system-route ${route.domain} ${runStep?.active === "primary-pipework" && route.id === "primary" ? "active" : ""} ${hasConsequences && route.id === "primary" ? "constraint" : ""}" points="${route.points}"/>
+            <path class="system-route ${route.domain} ${isRouteSelected(route) ? "selected" : ""} ${runStep?.active === "primary-pipework" && route.id === "primary" ? "active" : ""} ${hasConsequences && route.id === "primary" ? "constraint" : ""}" d="${routePath(route)}"/>
+            ${isRouteSelected(route) ? `<text class="route-label" x="${routeLabelPosition(route).x}" y="${routeLabelPosition(route).y}">${route.label}</text>` : ""}
           `).join("")}
         </g>
         <g class="component-layer">
@@ -316,6 +318,53 @@ function graphicTwin(mode = "current") {
       </div>
     </div>
   `;
+}
+
+function relationshipPanel(component) {
+  const routes = spatialFixture.routes.filter((route) => route.componentIds?.includes(component.id));
+  if (!routes.length) {
+    return `
+      <div class="relationship-panel empty">
+        <strong>No route relationship yet</strong>
+        <p>This item is spatially located but no route or connection has been evidenced in the Sandbox fixture.</p>
+      </div>
+    `;
+  }
+  return `
+    <div class="relationship-panel">
+      <strong>Connected relationships</strong>
+      ${routes.map((route) => `
+        <article class="${route.domain}">
+          <span>${route.domain}</span>
+          <b>${route.label}</b>
+          <p>${route.evidenceState}</p>
+        </article>
+      `).join("")}
+    </div>
+  `;
+}
+
+function isRouteSelected(route) {
+  return route.componentIds?.includes(activeComponentId);
+}
+
+function routePath(route) {
+  if (route.d) return route.d;
+  const points = route.points?.trim().split(/\s+/) || [];
+  return points.map((point, index) => {
+    const [x, y] = point.split(",");
+    return `${index === 0 ? "M" : "L"}${x} ${y}`;
+  }).join(" ");
+}
+
+function routeLabelPosition(route) {
+  const numbers = routePath(route).match(/-?\d+/g)?.map(Number) || [360, 310];
+  const xs = numbers.filter((_, index) => index % 2 === 0);
+  const ys = numbers.filter((_, index) => index % 2 === 1);
+  return {
+    x: xs[Math.floor(xs.length / 2)] || 360,
+    y: (ys[Math.floor(ys.length / 2)] || 310) - 14
+  };
 }
 
 function roomCenter(path) {
@@ -385,7 +434,7 @@ function contextualActions(node) {
     <div class="action-stack">
       <button class="secondary" data-action="evidence">${icon("evidence")} Boiler evidence</button>
       <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain selected ${node.type}</button>
-      <button class="primary" data-action="create-what-if">${icon("branch")} Create What If copy</button>
+      <button class="primary" data-action="create-what-if">${icon("branch")} Create Scenario Twin</button>
       <a class="secondary" ${link("/run")}>Run current system</a>
     </div>
   `;
@@ -438,7 +487,7 @@ function tightenView() {
       <div class="tighten-list">
         ${state.reviewItems.map((item) => `
           ${reviewItem(item)}
-          ${item.resolved ? "" : `<button class="secondary" data-action="resolve" data-value="${item.id}">${actionLabel(item.type)}</button>`}
+          ${item.resolved ? "" : resolutionActions(item)}
         `).join("")}
       </div>
     </section>
@@ -451,17 +500,24 @@ function reviewItem(item) {
       <span>${item.resolved ? "resolved" : item.type}</span>
       <strong>${item.title}</strong>
       <p>${item.detail}</p>
+      ${item.action ? `<em>${item.action}</em>` : ""}
     </article>
   `;
 }
 
-function actionLabel(type) {
-  return {
-    candidate: "Confirm candidate",
-    unknown: "Mark unknown",
-    conflict: "Resolve conflict",
-    confirmed: "Acknowledge"
-  }[type] || "Resolve";
+function resolutionActions(item) {
+  const options = item.resolutions || [{
+    id: "resolve",
+    label: "Resolve",
+    result: "Resolved in sandbox review"
+  }];
+  return `
+    <div class="resolution-actions">
+      ${options.map((option) => `
+        <button class="secondary" data-action="resolve" data-value="${item.id}" data-resolution="${option.id}">${option.label}</button>
+      `).join("")}
+    </div>
+  `;
 }
 
 function whatIfView() {
@@ -470,11 +526,11 @@ function whatIfView() {
     <section class="hero-card proposed">
       <div>
         <p class="eyebrow">${hasProposal ? "Proposed branch" : "Current reality only"}</p>
-        <h2>Boiler output What If</h2>
-        <p>Create a proposed Twin branch, change boiler output from 24 kW to 35 kW, and inspect causal consequences without mutating the authoritative Twin.</p>
+        <h2>Scenario Twin clone</h2>
+        <p>Clone the Current Twin, change boiler output from 24 kW to 35 kW, and inspect causal consequences without mutating authoritative reality.</p>
       </div>
       <div class="action-stack compact">
-        <button class="primary" data-action="create-what-if">Create proposed copy</button>
+        <button class="primary" data-action="create-what-if">Create Scenario Twin</button>
         <button class="secondary" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Apply 35 kW change</button>
       </div>
     </section>
@@ -487,9 +543,9 @@ function whatIfView() {
         ${graphicTwin("current")}
       </article>
       <article class="panel proposed-copy">
-        <p class="eyebrow">Proposed What If Twin</p>
+        <p class="eyebrow">Scenario Twin</p>
         <h2>${hasProposal ? `${state.proposedTwin.nodes.boiler.outputKw} kW boiler` : "No proposed branch yet"}</h2>
-        <p>${hasProposal ? "This is a cloned branch with a change set." : "Create a What If copy before making changes."}</p>
+        <p>${hasProposal ? "This is a cloned branch with an explicit change set." : "Create a Scenario Twin before making changes."}</p>
         ${hasProposal ? graphicTwin("proposed") : ""}
       </article>
     </section>
@@ -517,7 +573,7 @@ function whatIfView() {
 
 function runView() {
   const step = runTimeline[state.runStep];
-  const target = state.runTarget === "proposed" && state.proposedTwin ? "Proposed What If Twin" : "Current authoritative Twin";
+  const target = state.runTarget === "proposed" && state.proposedTwin ? "Scenario Twin" : "Current authoritative Twin";
   return shell(`
     <section class="hero-card">
       <div>

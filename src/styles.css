@@ -1705,6 +1705,21 @@ body {
 .system-route.access { stroke: #d8dee9; stroke-dasharray: 10 10; }
 .system-route.constraint { stroke: var(--red); }
 .system-route.active { stroke-width: 11; }
+.system-route.selected {
+  opacity: 1;
+  stroke-width: 12;
+  filter: url(#softGlow);
+}
+
+.route-label {
+  fill: #f8fafc;
+  font-size: 14px;
+  font-weight: 900;
+  paint-order: stroke;
+  stroke: rgba(4, 9, 16, .78);
+  stroke-width: 5;
+  pointer-events: none;
+}
 
 .component-node {
   cursor: pointer;
@@ -1732,6 +1747,64 @@ body {
 .component-node.selected .component-body {
   stroke: #3b82f6;
   stroke-width: 5;
+}
+
+.relationship-panel {
+  display: grid;
+  gap: .55rem;
+  margin: .8rem 0 1rem;
+}
+
+.relationship-panel > strong {
+  color: var(--text);
+  font-size: .88rem;
+}
+
+.relationship-panel article {
+  border: 1px solid rgba(216, 222, 233, .16);
+  border-radius: 12px;
+  padding: .7rem;
+  background: rgba(15, 23, 32, .66);
+}
+
+.relationship-panel article span {
+  color: var(--steel);
+  display: block;
+  font-size: .72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.relationship-panel article b {
+  display: block;
+  margin-top: .2rem;
+}
+
+.relationship-panel article p {
+  margin: .25rem 0 0;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.relationship-panel.empty {
+  border: 1px dashed rgba(216, 222, 233, .24);
+  border-radius: 12px;
+  padding: .8rem;
+}
+
+.resolution-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin: -.25rem 0 1rem;
+}
+
+.tighten-list article em {
+  display: block;
+  margin-top: .6rem;
+  color: var(--steel);
+  font-style: normal;
+  font-weight: 800;
 }
 
 .component-node.active .component-body {

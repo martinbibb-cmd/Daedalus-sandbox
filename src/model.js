@@ -76,11 +76,19 @@ export function canPromote(state) {
   return state.reviewItems.every((item) => item.resolved);
 }
 
-export function resolveTightenItem(state, itemId) {
+export function resolveTightenItem(state, itemId, resolutionId = "resolve") {
   const next = clone(state);
-  next.reviewItems = next.reviewItems.map((item) => (
-    item.id === itemId ? { ...item, resolved: true, action: "resolved in sandbox review" } : item
-  ));
+  next.reviewItems = next.reviewItems.map((item) => {
+    if (item.id !== itemId) return item;
+    const resolution = item.resolutions?.find((option) => option.id === resolutionId);
+    return {
+      ...item,
+      resolved: true,
+      resolutionId,
+      resolutionLabel: resolution?.label || "Resolved",
+      action: resolution?.result || "resolved in sandbox review"
+    };
+  });
   return next;
 }
 
@@ -99,8 +107,8 @@ export function promoteImport(state) {
 export function createWhatIf(state) {
   const next = clone(state);
   next.proposedTwin = clone(next.authoritativeTwin);
-  next.proposedTwin.id = `${next.authoritativeTwin.id}-what-if`;
-  next.proposedTwin.label = "Proposed What If Twin";
+  next.proposedTwin.id = `${next.authoritativeTwin.id}-scenario`;
+  next.proposedTwin.label = "Scenario Twin";
   next.proposedTwin.authority = "proposed";
   next.proposedChanges = [];
   next.consequences = [];
@@ -112,7 +120,7 @@ export function createWhatIf(state) {
 export function applyBoilerOutputChange(state, outputKw = 35) {
   const next = state.proposedTwin ? clone(state) : createWhatIf(state);
   next.proposedTwin.nodes.boiler.outputKw = outputKw;
-  next.proposedTwin.nodes.boiler.summary = `Proposed boiler output changed to ${outputKw} kW in the What If Twin.`;
+  next.proposedTwin.nodes.boiler.summary = `Scenario Twin boiler output changed to ${outputKw} kW.`;
   next.proposedChanges = [{
     nodeId: "boiler",
     field: "outputKw",

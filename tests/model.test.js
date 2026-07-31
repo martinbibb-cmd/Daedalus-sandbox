@@ -20,7 +20,7 @@ test("/main remains the Main entry route", () => {
   assert.equal(routeFor(""), "/main");
 });
 
-test("What If creates a proposed clone without mutating current reality", () => {
+test("Scenario Twin creates a proposed clone without mutating current reality", () => {
   const current = createInitialState();
   const proposed = createWhatIf(current);
 
@@ -46,7 +46,7 @@ test("applying the boiler change generates expected consequences", () => {
   assert.ok(changed.consequences.some((item) => item.id === "controls-limit"));
 });
 
-test("discarding What If preserves the authoritative Twin", () => {
+test("discarding a Scenario Twin preserves the authoritative Twin", () => {
   const changed = applyBoilerOutputChange(createWhatIf(createInitialState()), 35);
   const discarded = discardWhatIf(changed);
 
@@ -84,4 +84,13 @@ test("Tighten can promote after blockers are resolved", () => {
   const result = promoteImport(state);
   assert.equal(result.promoted, true);
   assert.equal(result.state.authoritativeTwin.version, 2);
+});
+
+test("Tighten records the chosen resolution rather than only confirming", () => {
+  const state = resolveTightenItem(createInitialState(), "unknown-occupancy", "mark-unknown");
+  const item = state.reviewItems.find((candidate) => candidate.id === "unknown-occupancy");
+
+  assert.equal(item.resolved, true);
+  assert.equal(item.resolutionId, "mark-unknown");
+  assert.match(item.action, /explicit unknown/);
 });

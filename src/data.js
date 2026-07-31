@@ -253,6 +253,18 @@ export const spatialFixture = {
       evidence: ["photo evidence", "network tag"]
     },
     {
+      id: "broadband-entry",
+      label: "Broadband entry",
+      domain: "network",
+      roomId: "room-2",
+      x: 570,
+      y: 188,
+      state: "candidate",
+      confidence: "candidate",
+      summary: "Candidate communications entry point. Route is shown as a candidate relationship, not an observed cable run.",
+      evidence: ["network tag", "surveyor statement"]
+    },
+    {
       id: "doorway",
       label: "Doorway",
       domain: "access",
@@ -290,11 +302,46 @@ export const spatialFixture = {
     }
   ],
   routes: [
-    { id: "primary", domain: "heating", label: "Primary heat route", points: "278,212 428,282 236,430" },
-    { id: "water", domain: "water", label: "Water evidence route", points: "205,248 278,212" },
-    { id: "power", domain: "electrical", label: "Electrical evidence route", points: "520,218 334,270" },
-    { id: "network", domain: "network", label: "Network path", points: "348,462 520,218" },
-    { id: "access", domain: "access", label: "Access path", points: "604,300 424,286 150,500" }
+    {
+      id: "primary",
+      domain: "heating",
+      label: "Primary heat route",
+      d: "M278 212 L360 212 L360 286 L424 286 L424 430 L236 430",
+      componentIds: ["boiler", "emitter"],
+      evidenceState: "candidate route"
+    },
+    {
+      id: "water",
+      domain: "water",
+      label: "Hot/cold water evidence route",
+      d: "M205 248 L205 286 L278 286 L278 212",
+      componentIds: ["tap", "boiler"],
+      evidenceState: "observed endpoints, inferred link"
+    },
+    {
+      id: "power",
+      domain: "electrical",
+      label: "Electrical circuit evidence route",
+      d: "M520 218 L520 270 L334 270",
+      componentIds: ["consumer-unit", "socket"],
+      evidenceState: "candidate relationship"
+    },
+    {
+      id: "network",
+      domain: "network",
+      label: "Broadband/network path",
+      d: "M570 188 L570 360 L348 360 L348 462",
+      componentIds: ["broadband-entry", "router"],
+      evidenceState: "candidate route corridor"
+    },
+    {
+      id: "access",
+      domain: "access",
+      label: "Access route through captured spaces",
+      d: "M604 300 L520 300 L520 420 L150 420 L150 500",
+      componentIds: ["doorway", "threshold"],
+      evidenceState: "observed openings, threshold unresolved"
+    }
   ]
 };
 
@@ -311,21 +358,62 @@ export const importReviewItems = [
     type: "candidate",
     title: "Cylinder type candidate",
     detail: "Hot-water source classification needs surveyor confirmation or preservation as candidate.",
-    resolved: false
+    resolved: false,
+    resolutions: [
+      {
+        id: "confirm",
+        label: "Confirm as cylinder",
+        result: "Confirmed as cylinder evidence for promotion."
+      },
+      {
+        id: "keep-candidate",
+        label: "Keep candidate",
+        result: "Preserved as candidate; it remains visible but is not promoted as confirmed truth."
+      },
+      {
+        id: "reject",
+        label: "Reject",
+        result: "Rejected from promotion because the evidence is not sufficient."
+      }
+    ]
   },
   {
     id: "unknown-occupancy",
     type: "unknown",
     title: "Occupancy and usage missing",
     detail: "Home context is not complete until transcript questions are answered or marked unknown.",
-    resolved: false
+    resolved: false,
+    resolutions: [
+      {
+        id: "ask-later",
+        label: "Add follow-up",
+        result: "Converted to a follow-up question for the next Capture or review session."
+      },
+      {
+        id: "mark-unknown",
+        label: "Keep unknown",
+        result: "Preserved as explicit unknown; no usage fact will be promoted."
+      }
+    ]
   },
   {
     id: "conflict-boiler-space",
     type: "conflict",
     title: "Boiler clearance conflicts with cupboard geometry",
     detail: "Proposed object evidence conflicts with captured wall/cupboard geometry.",
-    resolved: false
+    resolved: false,
+    resolutions: [
+      {
+        id: "flag-surveyor",
+        label: "Flag review",
+        result: "Conflict preserved and flagged for surveyor review before use."
+      },
+      {
+        id: "prefer-roomplan",
+        label: "Use RoomPlan geometry",
+        result: "RoomPlan geometry retained as current reality; proposed object stays separate."
+      }
+    ]
   }
 ];
 
