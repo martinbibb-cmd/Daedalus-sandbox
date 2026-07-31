@@ -132,6 +132,172 @@ export const authoritativeTwin = {
   }
 };
 
+export const spatialFixture = {
+  source: "Capture v2 RoomPlan session summary, 2026-07-10T09:38:24.242Z",
+  captureId: "daedalus-roomplan-session-2026-07-10T09-38-24.242Z",
+  note: "Sanitized Sandbox projection from bounded RoomPlan room captures. It demonstrates the visual model; it is not the production stitching engine.",
+  rooms: [
+    {
+      id: "room-1",
+      label: "Room 1",
+      role: "Kitchen / plant area",
+      path: "M116 148 L382 112 L424 286 L160 328 Z",
+      artifacts: 3,
+      confidence: "strong"
+    },
+    {
+      id: "room-2",
+      label: "Room 2",
+      role: "Hall / circulation",
+      path: "M383 112 L625 148 L592 324 L424 286 Z",
+      artifacts: 1,
+      confidence: "observed"
+    },
+    {
+      id: "room-3",
+      label: "Room 3",
+      role: "Living space",
+      path: "M160 328 L424 286 L458 514 L118 536 Z",
+      artifacts: 2,
+      confidence: "observed"
+    },
+    {
+      id: "room-4",
+      label: "Room 4",
+      role: "Utility / service edge",
+      path: "M424 286 L592 324 L548 502 L458 514 Z",
+      artifacts: 2,
+      confidence: "observed"
+    }
+  ],
+  layers: [
+    { id: "all", label: "All" },
+    { id: "heating", label: "Heat" },
+    { id: "water", label: "Water" },
+    { id: "electrical", label: "Power" },
+    { id: "network", label: "Network" },
+    { id: "access", label: "Access" },
+    { id: "evidence", label: "Evidence" }
+  ],
+  components: [
+    {
+      id: "boiler",
+      label: "Boiler",
+      domain: "heating",
+      roomId: "room-1",
+      x: 278,
+      y: 212,
+      state: "observed",
+      confidence: "confirmed",
+      summary: "Observed wall-hung heat source attached to RoomPlan and photo evidence.",
+      evidence: ["RoomPlan CapturedRoom", "photo evidence", "surveyor observation"]
+    },
+    {
+      id: "emitter",
+      label: "Emitter",
+      domain: "heating",
+      roomId: "room-3",
+      x: 236,
+      y: 430,
+      state: "candidate",
+      confidence: "candidate",
+      summary: "Emitter position captured as specialist heating evidence.",
+      evidence: ["semantic tag", "photo evidence"]
+    },
+    {
+      id: "tap",
+      label: "Tap",
+      domain: "water",
+      roomId: "room-1",
+      x: 205,
+      y: 248,
+      state: "observed",
+      confidence: "observed",
+      summary: "Water outlet connected to the wider hot/cold water evidence layer.",
+      evidence: ["photo evidence", "component tag"]
+    },
+    {
+      id: "socket",
+      label: "Socket",
+      domain: "electrical",
+      roomId: "room-1",
+      x: 334,
+      y: 270,
+      state: "observed",
+      confidence: "observed",
+      summary: "Electrical accessory captured spatially; circuit relationship remains unknown.",
+      evidence: ["semantic tag", "photo evidence"]
+    },
+    {
+      id: "consumer-unit",
+      label: "Consumer unit",
+      domain: "electrical",
+      roomId: "room-2",
+      x: 520,
+      y: 218,
+      state: "candidate",
+      confidence: "candidate",
+      summary: "Candidate electrical supply component. Circuit claims are not authoritative yet.",
+      evidence: ["surveyor statement"]
+    },
+    {
+      id: "router",
+      label: "Router",
+      domain: "network",
+      roomId: "room-3",
+      x: 348,
+      y: 462,
+      state: "observed",
+      confidence: "observed",
+      summary: "Network equipment location captured as part of the broader property twin.",
+      evidence: ["photo evidence", "network tag"]
+    },
+    {
+      id: "doorway",
+      label: "Doorway",
+      domain: "access",
+      roomId: "room-2",
+      x: 604,
+      y: 300,
+      state: "observed",
+      confidence: "observed",
+      summary: "Access opening and circulation constraint attached to the spatial model.",
+      evidence: ["RoomPlan opening", "access tag"]
+    },
+    {
+      id: "threshold",
+      label: "Threshold",
+      domain: "access",
+      roomId: "room-3",
+      x: 150,
+      y: 500,
+      state: "unknown",
+      confidence: "needs measurement",
+      summary: "Access detail needs refinement before it can become authoritative.",
+      evidence: ["manual follow-up required"]
+    },
+    {
+      id: "point-cloud",
+      label: "Detail patch",
+      domain: "evidence",
+      roomId: "room-1",
+      x: 300,
+      y: 172,
+      state: "observed",
+      confidence: "observed",
+      summary: "Small-area LiDAR patch supplements RoomPlan where detailed geometry matters.",
+      evidence: ["ARKit point cloud session"]
+    }
+  ],
+  routes: [
+    { id: "primary", domain: "heating", label: "Primary heat route", points: "278,212 428,282 236,430" },
+    { id: "water", domain: "water", label: "Water evidence route", points: "205,248 278,212" },
+    { id: "power", domain: "electrical", label: "Electrical evidence route", points: "520,218 334,270" },
+    { id: "network", domain: "network", label: "Network path", points: "348,462 520,218" },
+    { id: "access", domain: "access", label: "Access path", points: "604,300 424,286 150,500" }
+  ]
+};
+
 export const importReviewItems = [
   {
     id: "confirmed-boiler",

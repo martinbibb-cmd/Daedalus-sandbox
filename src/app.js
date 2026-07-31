@@ -2,7 +2,8 @@ import {
   captureDemo,
   explanationText,
   property,
-  runTimeline
+  runTimeline,
+  spatialFixture
 } from "./data.js";
 import {
   advanceRun,
@@ -27,6 +28,8 @@ import {
 
 const app = document.querySelector("#app");
 let state = createInitialState();
+let activeLayer = "all";
+let activeComponentId = "boiler";
 
 const routes = [
   ["Main", "/main"],
@@ -76,6 +79,20 @@ document.addEventListener("click", (event) => {
   const tag = event.target.closest("[data-tag]");
   if (tag) {
     state = { ...state, tagPath: [tag.dataset.group, tag.dataset.tag] };
+    render();
+  }
+
+  const layer = event.target.closest("[data-layer]");
+  if (layer) {
+    activeLayer = layer.dataset.layer;
+    render();
+    return;
+  }
+
+  const component = event.target.closest("[data-component]");
+  if (component) {
+    activeComponentId = component.dataset.component;
+    if (activeComponentId === "boiler") state = selectNode(state, "boiler");
     render();
   }
 });
@@ -148,54 +165,94 @@ function mainView() {
   const node = selectedNode(state);
   const path = state.selectedPath;
   const isEvidence = selectedId(state) === "boiler-evidence";
+  const activeComponent = selectedSpatialComponent();
   return shell(`
-    <section class="hero-card">
+    <section class="mission-strip">
       <div>
         <p class="eyebrow">Current Reality · Authoritative</p>
         <h2>${property.name}</h2>
-        <p>${property.address}</p>
+        <p>${property.address} · ${spatialFixture.rooms.length} captured spaces · ${spatialFixture.components.length} specialist records</p>
       </div>
-      <div class="status-pill">Current Twin v${state.authoritativeTwin.version}</div>
+      <div class="mission-metrics">
+        <span><b>Capture</b> v2 fixture</span>
+        <span><b>Authority</b> Current Twin v${state.authoritativeTwin.version}</span>
+        <span><b>Layer</b> ${labelForLayer(activeLayer)}</span>
+      </div>
     </section>
 
-    <section class="workspace-grid">
-      <article class="panel twin-map">
-        <div class="section-heading">
+    <section class="living-workspace">
+      <article class="dollhouse-stage">
+        <div class="workspace-head">
           <div>
-            <p class="eyebrow">Combined Twin</p>
-            <h2>House + System + Home</h2>
+            <p class="eyebrow">Living Dollhouse Workspace</p>
+            <h2>Property as the interface</h2>
           </div>
           ${path.length > 1 ? `<button class="secondary small" data-action="back">Back</button>` : ""}
         </div>
+        ${layerBar()}
         ${breadcrumb(path)}
         ${graphicTwin("current")}
       </article>
 
-      <aside class="panel inspector">
-        <p class="eyebrow">${node.type}</p>
-        <h2>${node.name}</h2>
-        <p>${node.summary}</p>
-        ${factList(node)}
-        ${isEvidence ? evidenceList(node) : contextualActions(node)}
+      <aside class="twin-inspector">
+        <p class="eyebrow">${activeComponent.domain} · ${activeComponent.state}</p>
+        <h2>${activeComponent.label}</h2>
+        <p>${activeComponent.summary}</p>
+        <div class="component-meta">
+          <span><b>Room</b>${roomFor(activeComponent.roomId).label}</span>
+          <span><b>Confidence</b>${activeComponent.confidence}</span>
+          <span><b>Evidence</b>${activeComponent.evidence.length} refs</span>
+        </div>
+        <div class="evidence-chips">
+          ${activeComponent.evidence.map((item) => `<span>${item}</span>`).join("")}
+        </div>
+        <div class="inspector-actions">
+          ${activeComponent.id === "boiler" ? `
+            <button class="secondary" data-action="evidence">${icon("evidence")} Boiler evidence</button>
+            <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain boiler</button>
+            <button class="primary" data-action="create-what-if">${icon("branch")} Create What If copy</button>
+          ` : `
+            <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain selected layer</button>
+          `}
+        </div>
       </aside>
     </section>
 
-    <section class="panel dimensions">
+    <section class="twin-lenses">
       ${dimensionCard("House", state.authoritativeTwin.dimensions.house)}
       ${dimensionCard("System", state.authoritativeTwin.dimensions.system)}
       ${dimensionCard("Home", state.authoritativeTwin.dimensions.home)}
-    </section>
-
-    <section class="panel unresolved">
-      <h2>Important unresolved evidence</h2>
-      <div class="tighten-list">
-        ${state.reviewItems.filter((item) => !item.resolved).map(reviewItem).join("")}
-      </div>
-      <a class="secondary" ${link("/tighten")}>Open Tighten review</a>
+      <article class="lens-card unresolved-lens">
+        <p class="eyebrow">Unresolved</p>
+        <h3>${state.reviewItems.filter((item) => !item.resolved).length} items need Tighten review</h3>
+        <a class="secondary" ${link("/tighten")}>Open Tighten review</a>
+      </article>
     </section>
 
     ${state.explanationOpen ? explanationPanel() : ""}
   `);
+}
+
+function selectedSpatialComponent() {
+  return spatialFixture.components.find((item) => item.id === activeComponentId) || spatialFixture.components[0];
+}
+
+function roomFor(roomId) {
+  return spatialFixture.rooms.find((room) => room.id === roomId) || spatialFixture.rooms[0];
+}
+
+function labelForLayer(layerId) {
+  return spatialFixture.layers.find((layer) => layer.id === layerId)?.label || "All";
+}
+
+function layerBar() {
+  return `
+    <div class="layer-bar" aria-label="Twin layer filters">
+      ${spatialFixture.layers.map((layer) => `
+        <button class="${activeLayer === layer.id ? "active" : ""}" data-layer="${layer.id}">${layer.label}</button>
+      `).join("")}
+    </div>
+  `;
 }
 
 function breadcrumb(path) {
@@ -211,74 +268,83 @@ function breadcrumb(path) {
 
 function graphicTwin(mode = "current") {
   const path = state.selectedPath;
-  const selected = selectedId(state);
-  const isBoilerFocus = path.includes("boiler") || selected === "boiler-evidence";
+  const isBoilerFocus = path.includes("boiler") || selectedId(state) === "boiler-evidence";
   const isProposed = mode === "proposed" && state.proposedTwin;
   const hasConsequences = Boolean(state.consequences.length);
   const runStep = mode === "run" ? runTimeline[state.runStep] : null;
   const bottleneck = runStep?.bottleneck;
   const boilerOutput = isProposed ? state.proposedTwin.nodes.boiler.outputKw : state.authoritativeTwin.nodes.boiler.outputKw;
+  const visible = (domain) => activeLayer === "all" || activeLayer === domain || (activeLayer === "evidence" && domain === "evidence");
   return `
-    <div class="graphic-twin ${mode} ${isBoilerFocus ? "focus-boiler" : ""} ${hasConsequences ? "has-consequences" : ""} ${bottleneck ? "has-bottleneck" : ""}">
-      <div class="house-shell" aria-label="Graphic twin of the property">
-        <button class="room-zone kitchen" data-action="select" data-value="heating">
-          <strong>Kitchen</strong>
-          <span>plant wall</span>
-        </button>
-        <button class="room-zone lounge" data-action="select" data-value="heat-loss">
-          <strong>Lounge</strong>
-          <span>heat demand</span>
-        </button>
-        <button class="room-zone hall" data-action="select" data-value="primary-pipework">
-          <strong>Hall</strong>
-          <span>primary route</span>
-        </button>
-        <button class="room-zone utility" data-action="select" data-value="controls">
-          <strong>Utility</strong>
-          <span>controls</span>
-        </button>
-
-        <button class="appliance boiler-object ${path.includes("boiler") ? "selected" : ""} ${runStep?.active === "boiler" ? "active" : ""}" data-action="select" data-value="boiler">
-          <span class="appliance-body"></span>
-          <strong>Boiler</strong>
-          <em>${boilerOutput} kW</em>
-        </button>
-
-        <button class="system-overlay primary-pipe ${path.includes("primary-pipework") ? "selected" : ""} ${hasConsequences ? "constraint" : ""} ${runStep?.active === "primary-pipework" ? "active" : ""}" data-action="select" data-value="primary-pipework">
-          <span>Primary pipework</span>
-        </button>
-        <button class="system-overlay control-link ${path.includes("controls") ? "selected" : ""} ${hasConsequences ? "limited" : ""}" data-action="select" data-value="controls">
-          <span>Controls</span>
-        </button>
-        <button class="system-overlay heat-zone ${path.includes("heat-loss") ? "selected" : ""}" data-action="select" data-value="heat-loss">
-          <span>Heat-loss evidence</span>
-        </button>
-
-        ${isBoilerFocus ? `
-          <button class="evidence-marker photo" data-action="evidence" aria-label="Boiler photo evidence">Photo</button>
-          <button class="evidence-marker manual" data-action="evidence" aria-label="Manual measurement evidence">Measure</button>
-          <button class="evidence-marker declared" data-action="evidence" aria-label="Declared model evidence">Declared</button>
-          <div class="graphic-callout boiler-callout">
-            <strong>Boiler evidence</strong>
-            <span>Observed photo, manual measurement and declared model remain attached here.</span>
-          </div>
-        ` : ""}
-
+    <div class="graphic-twin spatial ${mode} ${isBoilerFocus ? "focus-boiler" : ""} ${hasConsequences ? "has-consequences" : ""} ${bottleneck ? "has-bottleneck" : ""}">
+      <svg class="spatial-map" viewBox="0 0 740 620" role="img" aria-label="Spatial Living Dollhouse projection">
+        <defs>
+          <filter id="softGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <rect class="map-backdrop" x="0" y="0" width="740" height="620" rx="28"/>
+        <g class="room-layer">
+          ${spatialFixture.rooms.map((room) => `
+            <path class="captured-room ${room.confidence}" d="${room.path}" tabindex="0"/>
+            <text class="room-label" x="${roomCenter(room.path).x}" y="${roomCenter(room.path).y - 6}">${room.label}</text>
+            <text class="room-role" x="${roomCenter(room.path).x}" y="${roomCenter(room.path).y + 18}">${room.role}</text>
+          `).join("")}
+        </g>
+        <g class="route-layer">
+          ${spatialFixture.routes.filter((route) => visible(route.domain)).map((route) => `
+            <polyline class="system-route ${route.domain} ${runStep?.active === "primary-pipework" && route.id === "primary" ? "active" : ""} ${hasConsequences && route.id === "primary" ? "constraint" : ""}" points="${route.points}"/>
+          `).join("")}
+        </g>
+        <g class="component-layer">
+          ${spatialFixture.components.filter((component) => visible(component.domain)).map((component) => `
+            <g class="component-node ${component.domain} ${component.state} ${activeComponentId === component.id ? "selected" : ""} ${component.id === "boiler" && runStep?.active === "boiler" ? "active" : ""}" data-component="${component.id}" tabindex="0" transform="translate(${component.x} ${component.y})">
+              ${componentShape(component)}
+              <text class="component-label" x="0" y="-22">${component.id === "boiler" && isProposed ? `${component.label} ${boilerOutput} kW` : component.label}</text>
+            </g>
+          `).join("")}
+        </g>
         ${hasConsequences ? `
-          <div class="graphic-callout pipe-callout warning">
-            <strong>Primary constraint</strong>
-            <span>Useful output plateaus before 35 kW reaches rooms.</span>
-          </div>
-          <div class="graphic-callout controls-callout amber">
-            <strong>Controls limit</strong>
-            <span>Current configuration does not request the proposed output.</span>
-          </div>
+          <g class="consequence-layer">
+            <path class="constraint-zone" d="M280 210 L428 282 L240 432"/>
+            <text class="warning-label" x="425" y="260">Primary constraint</text>
+            <text class="warning-label small" x="500" y="220">controls evidence incomplete</text>
+          </g>
         ` : ""}
-
-        ${bottleneck ? `<div class="graphic-callout bottleneck-callout"><strong>Bottleneck</strong><span>${bottleneck}</span></div>` : ""}
+      </svg>
+      <div class="map-caption">
+        <strong>${spatialFixture.captureId}</strong>
+        <span>${spatialFixture.note}</span>
       </div>
     </div>
   `;
+}
+
+function roomCenter(path) {
+  const numbers = path.match(/-?\d+/g)?.map(Number) || [0, 0];
+  const xs = numbers.filter((_, index) => index % 2 === 0);
+  const ys = numbers.filter((_, index) => index % 2 === 1);
+  return {
+    x: xs.reduce((sum, value) => sum + value, 0) / xs.length,
+    y: ys.reduce((sum, value) => sum + value, 0) / ys.length
+  };
+}
+
+function componentShape(component) {
+  if (component.id === "boiler") {
+    return `<rect class="component-body boiler-body" x="-18" y="-26" width="36" height="52" rx="5"/><circle class="component-core" r="5"/>`;
+  }
+  if (component.domain === "electrical") {
+    return `<rect class="component-body" x="-14" y="-14" width="28" height="28" rx="4"/><path d="M-5 0h10M0-5v10"/>`;
+  }
+  if (component.domain === "water") {
+    return `<path class="component-body" d="M0-16 C14 0 12 16 0 18 C-12 16 -14 0 0-16Z"/>`;
+  }
+  if (component.domain === "network") {
+    return `<rect class="component-body" x="-18" y="-12" width="36" height="24" rx="5"/><path d="M-10-2h20M-7 5h14"/>`;
+  }
+  if (component.domain === "access") {
+    return `<path class="component-body" d="M-16 14 L16 14 L16-14"/><path d="M-14 12 C2 8 10-2 16-14"/>`;
+  }
+  return `<circle class="component-body" r="15"/><path d="M-8 0h16M0-8v16"/>`;
 }
 
 function factList(node) {
@@ -327,7 +393,7 @@ function contextualActions(node) {
 
 function dimensionCard(name, dimension) {
   return `
-    <article>
+    <article class="lens-card">
       <p class="eyebrow">${name}</p>
       <h3>${dimension.summary}</h3>
       <ul>${dimension.facts.map((fact) => `<li>${fact}</li>`).join("")}</ul>

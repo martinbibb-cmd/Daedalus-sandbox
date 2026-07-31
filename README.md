@@ -47,6 +47,20 @@ npm test
 
 Older links such as `#/home`, `#/command`, `#/reasoning`, and `#/scenarios` enter `#/main`.
 
+## Visual Sandbox Role
+
+This PWA is now the place to test whether the product *feels* like Daedalus before the real Main implementation commits to a visual direction.
+
+The current `#/main` screen is intentionally spatial-first:
+
+- the Living Dollhouse dominates the page;
+- the projection is seeded from a sanitized Capture v2 RoomPlan session summary;
+- rooms, routes, components and evidence markers appear in one property workspace;
+- heating, water, electrical, network, access and evidence are layer filters over the same Twin;
+- selecting a component changes the inspector without leaving the property context.
+
+The fixture is a visual projection, not production geometry stitching. It should be judged as a design-intent smoke test, not as a replacement for Main's authoritative renderer.
+
 ## Product Rules Demonstrated
 
 - The Twin is the noun; What If and Run are verbs applied to it.
@@ -75,6 +89,7 @@ Production ownership remains:
 ## Files
 
 - `src/data.js` contains mocked Twin, evidence, Tighten, What If and Run data.
+- `src/data.js` also contains the sanitized spatial fixture used by the visual dollhouse smoke test.
 - `src/model.js` contains pure state transitions used by tests.
 - `src/app.js` renders the disposable prototype.
 - `src/styles.css` contains the visual system.
