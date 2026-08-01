@@ -313,38 +313,159 @@ function placeCanvas({ mode }) {
   const component = selectedComponent();
   const proposal = state.proposedTwin && (mode === "clone" || mode === "run");
   const activeStep = mode === "run" ? runTimeline[state.runStep] : null;
+  const lens = activeLayer === "all" ? "heating" : activeLayer;
+  const lensInfo = twinLensInfo(lens);
   return `
-    <article class="place-canvas-card">
-      <div class="canvas-toolbar">
+    <article class="place-canvas-card workstation-panel ${lensInfo.id}">
+      <div class="workstation-chrome">
         <div>
-          <p class="eyebrow">Living Place canvas</p>
-          <h2>Captured geometry with graph-backed overlays</h2>
+          <p class="eyebrow">Daedalus · Living Dollhouse · Ground floor</p>
+          <h2><span>${lensInfo.icon}</span>${lensInfo.title}</h2>
         </div>
-        ${layerBar()}
+        <div class="workstation-actions">
+          <button aria-label="Layer stack">▰</button>
+          <button aria-label="Settings">⚙</button>
+          <button aria-label="More">⋮</button>
+        </div>
       </div>
-      <div class="cad-viewport ${mode} ${proposal ? "proposal-active" : ""}">
-        <svg class="place-svg" viewBox="0 0 960 640" role="img" aria-label="CAD-style Place Twin sandbox mockup">
-          <defs>
-            <pattern id="floor-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
-            </pattern>
-            <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          </defs>
-          <rect class="cad-bg" x="0" y="0" width="960" height="640" rx="26"/>
-          <rect x="0" y="0" width="960" height="640" fill="url(#floor-grid)"/>
-          ${placeShell()}
-          ${routeLayer(activeStep)}
-          ${componentLayer(proposal, activeStep)}
-          ${tightenPins(mode)}
-          ${cloneOverlay(proposal)}
-          ${runOverlay(activeStep)}
-        </svg>
+      ${lensTabs(lensInfo.id)}
+      ${lensStats(lensInfo.id, activeStep)}
+      <div class="workstation-body">
+        ${lensLegend(lensInfo.id)}
+        ${lensFloatingPanel(lensInfo.id, component, activeStep)}
+        <div class="cad-viewport ${mode} ${proposal ? "proposal-active" : ""}">
+          <svg class="place-svg" viewBox="0 0 960 640" role="img" aria-label="CAD-style Place Twin sandbox mockup">
+            <defs>
+              <pattern id="floor-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
+              </pattern>
+              <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <rect class="cad-bg" x="0" y="0" width="960" height="640" rx="26"/>
+            <rect x="0" y="0" width="960" height="640" fill="url(#floor-grid)"/>
+            ${placeShell()}
+            ${coverageLayer(lensInfo.id)}
+            ${routeLayer(activeStep)}
+            ${componentLayer(proposal, activeStep)}
+            ${tightenPins(mode)}
+            ${cloneOverlay(proposal)}
+            ${runOverlay(activeStep)}
+          </svg>
+        </div>
       </div>
-      <div class="selected-strip">
-        <strong>${component.label}</strong>
-        <span>${roomFor(component.roomId).label} · ${component.domain} · ${formatPosition(component.position)}</span>
+      <div class="workstation-dock">
+        ${dockCards(lensInfo.id, component)}
       </div>
     </article>
+  `;
+}
+
+function twinLensInfo(layerId) {
+  const map = {
+    heating: { id: "heating", title: "Heating Twin", icon: "♨", accent: "heat" },
+    water: { id: "water", title: "Water Twin", icon: "◖", accent: "water" },
+    electrical: { id: "electrical", title: "Electrical Twin", icon: "ϟ", accent: "power" },
+    network: { id: "network", title: "WiFi Twin", icon: "≋", accent: "network" },
+    access: { id: "access", title: "Human Interaction Twin", icon: "◎", accent: "access" },
+    evidence: { id: "evidence", title: "Evidence Twin", icon: "◇", accent: "evidence" }
+  };
+  return map[layerId] || map.heating;
+}
+
+function lensTabs(layerId) {
+  const tabs = {
+    heating: ["System", "Temperatures", "Flow / Return", "Efficiency", "Evidence"],
+    water: ["Outlets", "Pressure", "Flow", "Hot water", "Evidence"],
+    electrical: ["Circuits", "Sockets", "Lighting", "Supplies", "Evidence"],
+    network: ["Coverage", "Devices", "Backhaul", "Entry", "Evidence"],
+    access: ["Navigate", "Clearances", "Obstacles", "Surfaces", "Evidence"],
+    evidence: ["Observed", "Inferred", "Unknown", "Conflicts", "Sources"]
+  }[layerId] || ["System", "Evidence"];
+  return `
+    <div class="lens-tabs">
+      ${spatialFixture.layers.filter((layer) => layer.id !== "all").map((layer) => `
+        <button class="${activeLayer === layer.id || (activeLayer === "all" && layer.id === "heating") ? "active" : ""}" data-layer="${layer.id}">${layer.label}</button>
+      `).join("")}
+      <span class="tab-divider"></span>
+      ${tabs.map((tab, index) => `<button class="${index === 0 ? "active subtab" : "subtab"}">${tab}</button>`).join("")}
+    </div>
+  `;
+}
+
+function lensStats(layerId, activeStep) {
+  const rows = {
+    heating: [["System mode", activeStep ? "OPERATING" : "HEATING"], ["Outdoor", "6.2 °C"], ["Flow", activeStep?.active === "primary-pipework" ? "Limited" : "45.1 °C"], ["Return", "37.8 °C"], ["Efficiency", "87%"]],
+    water: [["Mode", "Observed"], ["Standing", "3.4 bar"], ["Flow", "14.6 l/min"], ["Hot water", "uncertain"], ["Evidence", "mixed"]],
+    electrical: [["Supply", "observed"], ["Circuits", "candidate"], ["Sockets", "1 tagged"], ["Lighting", "missing"], ["Evidence", "partial"]],
+    network: [["Band", "2.4 / 5 GHz"], ["Router", "observed"], ["Entry", "candidate"], ["Backhaul", "unknown"], ["Dead zones", "1"]],
+    access: [["Profile", "wheelchair"], ["Route", "candidate"], ["Narrowest", "760 mm"], ["Turns", "3"], ["Step", "190 mm"]],
+    evidence: [["Observed", "6"], ["Candidate", "5"], ["Unknown", "3"], ["Conflicts", "1"], ["Photos", "linked"]]
+  }[layerId] || [];
+  return `
+    <div class="lens-stats">
+      ${rows.map(([label, value]) => `<span><b>${label}</b>${value}</span>`).join("")}
+    </div>
+  `;
+}
+
+function lensLegend(layerId) {
+  const items = {
+    heating: [["Flow hot", "legend-hot"], ["Return cool", "legend-cool"], ["Valve", "legend-valve"], ["Pump", "legend-pump"], ["Unknown", "legend-dash"]],
+    water: [["Cold supply", "legend-cool"], ["Hot supply", "legend-hot"], ["Outlet", "legend-pump"], ["Inferred", "legend-dash"]],
+    electrical: [["Socket", "legend-power"], ["Consumer unit", "legend-pump"], ["Circuit candidate", "legend-dash"], ["Unknown", "legend-unknown"]],
+    network: [["Router / AP", "legend-network"], ["ONT / entry", "legend-amber"], ["Wired backhaul", "legend-dash"], ["Coverage", "legend-coverage"]],
+    access: [["Reachable", "legend-access"], ["Constrained", "legend-amber"], ["Blocked", "legend-red"], ["Unknown", "legend-dash"]],
+    evidence: [["Observed", "legend-network"], ["Candidate", "legend-amber"], ["Unknown", "legend-unknown"], ["Conflict", "legend-red"]]
+  }[layerId] || [];
+  return `
+    <aside class="map-legend">
+      <strong>${twinLensInfo(layerId).title} Legend</strong>
+      ${items.map(([label, klass]) => `<span><i class="${klass}"></i>${label}</span>`).join("")}
+    </aside>
+  `;
+}
+
+function lensFloatingPanel(layerId, component, activeStep) {
+  const content = {
+    heating: `<b>${component.domain === "heating" ? component.label : "Bathroom Radiator"}</b><span>Flow: 44.0 °C</span><span>Return: 36.2 °C</span><span>ΔT: 7.8 °C</span>`,
+    water: `<b>Hot-water uncertainty</b><span>Combination boiler and cylinder both referenced.</span><span>Tighten needs a bounded choice.</span>`,
+    electrical: `<b>Socket evidence</b><span>1 observed accessory</span><span>Consumer unit candidate</span><span>Circuit not confirmed</span>`,
+    network: `<b>Dead Zone #1</b><span>Signal: weak</span><span>Serving AP: Router</span><span>ONT unresolved</span>`,
+    access: `<b>Route to living room</b><span>Status: candidate</span><span>Narrowest: 760 mm</span><span>Step: 190 mm</span>`,
+    evidence: `<b>${component.label}</b><span>${component.evidence.length} linked refs</span><span>${component.confidence}</span><span>${formatPosition(component.position)}</span>`
+  }[layerId];
+  return `<aside class="map-popover">${content}</aside>`;
+}
+
+function dockCards(layerId, component) {
+  const cards = {
+    heating: [["Hall radiator", "Low ΔT suggests restricted flow"], ["Kitchen pipework", "Possible bottleneck detected"], [component.label, `${component.confidence} · ${roomFor(component.roomId).label}`]],
+    water: [["Kitchen tap", "Observed outlet"], ["Hot-water source", "Needs bounded Tighten question"], ["Flow evidence", "Pressure and flow linked"]],
+    electrical: [["Socket", "Observed accessory"], ["Consumer unit", "Candidate component"], ["Lighting", "Missing capture item"]],
+    network: [["Phone", "-48 dBm · 5 GHz"], ["Router", "Observed node"], ["ONT", "Not captured"]],
+    access: [["Kitchen doorway", "Clear width below target"], ["Threshold", "Needs measurement"], ["Turning space", "Unknown"]],
+    evidence: [["Photo", "Anchored to boiler"], ["Point cloud", "Observed detail patch"], ["Transcript", "Customer statements only"]]
+  }[layerId] || [];
+  return cards.map(([title, detail]) => `<article><strong>${title}</strong><span>${detail}</span></article>`).join("");
+}
+
+function coverageLayer(layerId) {
+  if (layerId !== "network" && layerId !== "access") return "";
+  if (layerId === "network") {
+    return `
+      <g class="coverage-layer">
+        <ellipse class="coverage good" cx="320" cy="340" rx="290" ry="210"/>
+        <ellipse class="coverage weak" cx="620" cy="190" rx="150" ry="110"/>
+        <ellipse class="coverage blocked" cx="660" cy="410" rx="130" ry="96"/>
+      </g>
+    `;
+  }
+  return `
+    <g class="coverage-layer access-clearance">
+      <path class="access-fill reachable" d="M640 292 L452 292 L452 500 L120 500"/>
+      <path class="access-fill constrained" d="M120 500 L96 500"/>
+      <rect class="access-zone" x="230" y="392" width="112" height="86" rx="18"/>
+    </g>
   `;
 }
 
