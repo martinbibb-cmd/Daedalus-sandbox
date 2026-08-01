@@ -5,7 +5,7 @@ Daedalus Sandbox is a disposable product prototype. It is not an architectural a
 Its current purpose is to demonstrate the intended Daedalus Main design language:
 
 1. Open `#/main`.
-2. See the property as a wireframe graphic Twin, not as a dashboard.
+2. See the Place as a wireframe graphic Twin, not as a dashboard.
 3. Select graph-backed rooms, routes and components through the graphic.
 4. Inspect customer-readable image/label overlays attached to graph items at real XYZ locations.
 5. Review ambiguities as multiple-choice questions, not free-text forms.
@@ -51,8 +51,8 @@ The current `#/main` screen is intentionally spatial-first:
 
 - the Living Dollhouse dominates the page;
 - the projection is seeded from a sanitized Capture v2 RoomPlan session summary;
-- rooms, routes, components and evidence markers appear in one property workspace;
-- heating, water, electrical, network, access and evidence are layer filters over the same Twin;
+- rooms, routes, components and evidence markers appear in one Place workspace;
+- heating, water, electrical, network, human interaction and evidence are layer filters over the same Twin;
 - selecting a component changes the inspector without leaving the property context.
 - the visible graphic is built from graph-backed components/routes on a wireframe, with labels/images for customer understanding;
 - every graph-backed component and comment annotation has an explicit XYZ location in the fixture;
@@ -64,8 +64,8 @@ The fixture is a visual projection, not production geometry stitching. It should
 ## Product Rules Demonstrated
 
 - The Twin is the noun; Change/Compare and Operate/Playback are verbs applied to it.
-- The graph is internal implementation. The user sees a graphic Twin of the house, system, room or component.
-- Graph-derived consequences must be projected back onto the house/system graphic.
+- The graph is internal implementation. The user sees a graphic Twin of the Place, system, room, route, surface or component.
+- Graph-derived consequences must be projected back onto the Place/system graphic.
 - Review & Complete is temporary ambiguity resolution for a fresh import, not a permanent workspace.
 - Ambiguities should become bounded questions with explicit choices and outcomes.
 - Zoom is contextual selection and drill-down through the graphic Twin.
@@ -80,7 +80,7 @@ The fixture is a visual projection, not production geometry stitching. It should
 
 The intended visual direction is documented in `docs/SANDBOX_VISUAL_TARGET.md`.
 
-In short: Sandbox should evolve toward a CAD/BIM-style living property twin where WiFi, heating and accessibility are projections over the same captured geometry. Tighten and proposed-copy editing must become spatial/CAD-like tools, not text workflows.
+In short: Sandbox should evolve toward a CAD/BIM-style living Place Twin where WiFi, heating and human interaction are projections over the same captured geometry. Tighten and proposed-copy editing must become spatial/CAD-like tools, not text workflows.
 
 ## Production Boundary
 

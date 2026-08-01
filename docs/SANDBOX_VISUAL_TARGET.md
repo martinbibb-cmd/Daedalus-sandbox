@@ -4,19 +4,19 @@ Daedalus Sandbox exists to test visual intent before Main implementation. It is 
 
 ## Target Feeling
 
-The intended Main experience is a CAD/BIM-style living property twin:
+The intended Main experience is a CAD/BIM-style living Place Twin:
 
-- a recognisable dollhouse or captured-property model fills the workspace;
+- a recognisable dollhouse, captured-property model, public-building model, external route model or broader Place model fills the workspace;
 - rooms, surfaces, routes and components are spatially meaningful;
 - system overlays are clipped to captured geometry;
-- the user inspects the property by selecting real places and objects;
+- the user inspects the Place by selecting real locations, surfaces, routes and objects;
 - evidence, certainty and warnings attach to the object, route or surface they describe.
 
 The UI should feel closer to an engineering workstation than an admin dashboard.
 
 ## Visual Projections
 
-Sandbox should prove several projections over the same property geometry.
+Sandbox should prove several projections over the same Place geometry.
 
 ### WiFi Twin
 
@@ -42,7 +42,7 @@ Show:
 
 Do not play unrelated systems in sequence. Heating playback must remain a coherent heating-system operation.
 
-### Accessibility Twin
+### Human Interaction Twin
 
 Show:
 
@@ -53,7 +53,9 @@ Show:
 - thresholds, steps and constrained routes;
 - navigation route through the captured geometry.
 
-Accessibility must not appear as a wheelchair charging through walls. Routes must respect room boundaries, openings and obstacles.
+Human Interaction must not appear as a wheelchair, person or object charging through walls. Routes must respect room boundaries, openings, obstacles and profile-specific equipment constraints.
+
+Human Interaction profiles may include wheelchair, stroller, luggage, reduced reach, low vision, family group or emergency evacuation contexts. Accessibility is one use case, not the whole layer.
 
 ## Routing Rule
 
@@ -95,7 +97,7 @@ Ambiguities should appear as bounded questions with clear choices. If a manual s
 
 ## Clone Must Be CAD-Like
 
-A proposed copy should allow graph items to be substituted, moved or resized within the property model.
+A proposed copy should allow graph items to be substituted, moved or resized within the Place model.
 
 Examples:
 
@@ -127,12 +129,11 @@ A raw graph can exist only as deep technical inspection.
 
 The next useful Sandbox visual tranche should demonstrate:
 
-1. One stable captured-property/dollhouse view.
-2. Three projections over the same geometry: WiFi, Heating and Accessibility.
+1. One stable captured-Place/dollhouse view.
+2. Three projections over the same geometry: WiFi, Heating and Human Interaction.
 3. Routed paths that respect geometry instead of straight-line shortcuts.
 4. A Heating playback that operates as one connected system.
 5. A Tighten ambiguity that opens a spatial edit or bounded choice.
 6. A Clone operation that substitutes or moves a graph item on the property.
 7. Evidence and comments with real XYZ locations.
 8. No fake behaviour presented as authoritative truth.
-
