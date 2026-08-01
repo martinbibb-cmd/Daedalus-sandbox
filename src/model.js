@@ -2,6 +2,7 @@ import {
   authoritativeTwin,
   importReviewItems,
   proposedBoilerConsequences,
+  replacementBoiler,
   runTimeline
 } from "./data.js";
 
@@ -31,8 +32,7 @@ export function createInitialState() {
     runTarget: "current",
     runStep: 0,
     runPlaying: false,
-    tagPath: [],
-    tightenDrafts: {}
+    tagPath: []
   };
 }
 
@@ -87,32 +87,8 @@ export function resolveTightenItem(state, itemId, resolutionId = "resolve") {
       resolved: true,
       resolutionId,
       resolutionLabel: resolution?.label || "Resolved",
-      action: resolution?.result || "resolved in sandbox review"
-    };
-  });
-  return next;
-}
-
-export function updateTightenDraft(state, itemId, value) {
-  const next = clone(state);
-  next.tightenDrafts[itemId] = value;
-  return next;
-}
-
-export function applyManualTightenEdit(state, itemId) {
-  const next = clone(state);
-  const manualValue = (next.tightenDrafts[itemId] || "").trim();
-  if (!manualValue) return next;
-
-  next.reviewItems = next.reviewItems.map((item) => {
-    if (item.id !== itemId) return item;
-    return {
-      ...item,
-      resolved: true,
-      resolutionId: "manual-edit",
-      resolutionLabel: "Manual refinement",
-      manualValue,
-      action: `Manual refinement recorded: ${manualValue}`
+      action: resolution?.result || "resolved in sandbox review",
+      followUp: resolution?.followUp
     };
   });
   return next;
@@ -133,8 +109,8 @@ export function promoteImport(state) {
 export function createWhatIf(state) {
   const next = clone(state);
   next.proposedTwin = clone(next.authoritativeTwin);
-  next.proposedTwin.id = `${next.authoritativeTwin.id}-scenario`;
-  next.proposedTwin.label = "Scenario Twin";
+  next.proposedTwin.id = `${next.authoritativeTwin.id}-clone`;
+  next.proposedTwin.label = "Proposed Twin copy";
   next.proposedTwin.authority = "proposed";
   next.proposedChanges = [];
   next.consequences = [];
@@ -143,19 +119,33 @@ export function createWhatIf(state) {
   return next;
 }
 
-export function applyBoilerOutputChange(state, outputKw = 35) {
+export function substituteGraphItem(state, nodeId = "boiler", replacement = replacementBoiler) {
   const next = state.proposedTwin ? clone(state) : createWhatIf(state);
-  next.proposedTwin.nodes.boiler.outputKw = outputKw;
-  next.proposedTwin.nodes.boiler.summary = `Scenario Twin boiler output changed to ${outputKw} kW.`;
+  const currentNode = state.authoritativeTwin.nodes[nodeId];
+  if (!currentNode) return next;
+  const replacementNode = {
+    ...clone(currentNode),
+    ...clone(replacement),
+    id: nodeId,
+    substitutionFor: currentNode.name,
+    preservedPosition: replacement.position || currentNode.position
+  };
+  next.proposedTwin.nodes[nodeId] = replacementNode;
   next.proposedChanges = [{
+    type: "graph-item-substitution",
     nodeId: "boiler",
-    field: "outputKw",
-    from: state.authoritativeTwin.nodes.boiler.outputKw,
-    to: outputKw
+    from: currentNode.name,
+    to: replacementNode.name,
+    preservesPosition: true,
+    position: replacementNode.preservedPosition || replacementNode.position
   }];
   next.consequences = clone(proposedBoilerConsequences);
   next.comparisonOpen = true;
   return next;
+}
+
+export function applyBoilerOutputChange(state) {
+  return substituteGraphItem(state, "boiler", replacementBoiler);
 }
 
 export function discardWhatIf(state) {

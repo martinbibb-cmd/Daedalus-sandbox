@@ -135,7 +135,7 @@ export const authoritativeTwin = {
 export const spatialFixture = {
   source: "Capture v2 RoomPlan session summary, 2026-07-10T09:38:24.242Z",
   captureId: "daedalus-roomplan-session-2026-07-10T09-38-24.242Z",
-  note: "Sanitized Sandbox projection from bounded RoomPlan room captures. It demonstrates the visual model; it is not the production stitching engine.",
+  note: "Design storyboard: graph-backed components projected onto a wireframe property view with customer-readable labels. This is not production RoomPlan stitching.",
   rooms: [
     {
       id: "room-1",
@@ -187,6 +187,7 @@ export const spatialFixture = {
       roomId: "room-1",
       x: 300,
       y: 170,
+      position: { x: 3.4, y: 1.55, z: 0.12, unit: "m", reference: "room-1 wall-local" },
       state: "observed",
       confidence: "confirmed",
       summary: "Observed wall-hung heat source attached to RoomPlan and photo evidence.",
@@ -199,6 +200,7 @@ export const spatialFixture = {
       roomId: "room-3",
       x: 210,
       y: 438,
+      position: { x: 1.3, y: 0.62, z: 0.09, unit: "m", reference: "room-3 wall-local" },
       state: "candidate",
       confidence: "candidate",
       summary: "Emitter position captured as specialist heating evidence.",
@@ -211,6 +213,7 @@ export const spatialFixture = {
       roomId: "room-1",
       x: 158,
       y: 235,
+      position: { x: 0.9, y: 0.94, z: 0.62, unit: "m", reference: "room-1 worktop-local" },
       state: "observed",
       confidence: "observed",
       summary: "Water outlet connected to the wider hot/cold water evidence layer.",
@@ -223,6 +226,7 @@ export const spatialFixture = {
       roomId: "room-1",
       x: 326,
       y: 246,
+      position: { x: 3.9, y: 1.05, z: 0.05, unit: "m", reference: "room-1 wall-local" },
       state: "observed",
       confidence: "observed",
       summary: "Electrical accessory captured spatially; circuit relationship remains unknown.",
@@ -235,6 +239,7 @@ export const spatialFixture = {
       roomId: "room-2",
       x: 568,
       y: 170,
+      position: { x: 2.1, y: 1.65, z: 0.12, unit: "m", reference: "room-2 wall-local" },
       state: "candidate",
       confidence: "candidate",
       summary: "Candidate electrical supply component. Circuit claims are not authoritative yet.",
@@ -247,6 +252,7 @@ export const spatialFixture = {
       roomId: "room-3",
       x: 310,
       y: 474,
+      position: { x: 2.8, y: 0.35, z: 0.48, unit: "m", reference: "room-3 shelf-local" },
       state: "observed",
       confidence: "observed",
       summary: "Network equipment location captured as part of the broader property twin.",
@@ -259,6 +265,7 @@ export const spatialFixture = {
       roomId: "room-2",
       x: 604,
       y: 142,
+      position: { x: 2.6, y: 1.9, z: 0.03, unit: "m", reference: "room-2 external-wall-local" },
       state: "candidate",
       confidence: "candidate",
       summary: "Candidate communications entry point. Route is shown as a candidate relationship, not an observed cable run.",
@@ -271,6 +278,7 @@ export const spatialFixture = {
       roomId: "room-2",
       x: 644,
       y: 292,
+      position: { x: 3.1, y: 0, z: 0, unit: "m", reference: "room-2 opening-local" },
       state: "observed",
       confidence: "observed",
       summary: "Access opening and circulation constraint attached to the spatial model.",
@@ -283,6 +291,7 @@ export const spatialFixture = {
       roomId: "room-3",
       x: 96,
       y: 500,
+      position: { x: 0, y: 0.02, z: 0, unit: "m", reference: "room-3 floor-local" },
       state: "unknown",
       confidence: "needs measurement",
       summary: "Access detail needs refinement before it can become authoritative.",
@@ -295,10 +304,40 @@ export const spatialFixture = {
       roomId: "room-1",
       x: 264,
       y: 126,
+      position: { x: 2.8, y: 1.72, z: 0.68, unit: "m", reference: "room-1 detail-patch-local" },
       state: "observed",
       confidence: "observed",
       summary: "Small-area LiDAR patch supplements RoomPlan where detailed geometry matters.",
       evidence: ["ARKit point cloud session"]
+    }
+  ],
+  comments: [
+    {
+      id: "comment-boiler-photo",
+      targetId: "boiler",
+      label: "photo",
+      text: "Boiler image anchored to wall position.",
+      x: 246,
+      y: 120,
+      position: { x: 3.4, y: 1.55, z: 0.12, unit: "m", reference: "boiler graph node" }
+    },
+    {
+      id: "comment-route-candidate",
+      targetId: "primary",
+      label: "candidate route",
+      text: "Pipe route is graph relationship evidence, not confirmed visible pipe.",
+      x: 338,
+      y: 344,
+      position: { x: 2.6, y: 0.35, z: 0.08, unit: "m", reference: "primary relationship midpoint" }
+    },
+    {
+      id: "comment-network-ont",
+      targetId: "broadband-entry",
+      label: "ONT?",
+      text: "Broadband entry needs bounded review before fibre is asserted.",
+      x: 628,
+      y: 106,
+      position: { x: 2.6, y: 1.9, z: 0.03, unit: "m", reference: "broadband entry graph node" }
     }
   ],
   routes: [
@@ -345,6 +384,23 @@ export const spatialFixture = {
   ]
 };
 
+export const replacementBoiler = {
+  id: "boiler",
+  type: "component",
+  name: "Replacement boiler candidate",
+  status: "proposed substitute",
+  outputKw: 35,
+  substitutedFor: "Existing gas boiler",
+  summary: "Proposed copy substitutes the boiler graph item while retaining its spatial anchor and evidence boundary.",
+  position: { x: 3.4, y: 1.55, z: 0.12, unit: "m", reference: "room-1 wall-local" },
+  facts: [
+    { label: "Proposed output", value: "35 kW", state: "proposed" },
+    { label: "Spatial anchor", value: "same wall-local XYZ as current boiler", state: "preserved" },
+    { label: "Authority", value: "clone only; current reality unchanged", state: "boundary" }
+  ],
+  children: ["boiler-evidence"]
+};
+
 export const importReviewItems = [
   {
     id: "confirmed-boiler",
@@ -356,24 +412,51 @@ export const importReviewItems = [
   {
     id: "candidate-cylinder",
     type: "candidate",
-    title: "Cylinder type candidate",
-    detail: "Hot-water source classification needs surveyor confirmation or preservation as candidate.",
+    title: "Hot-water source ambiguity",
+    question: "Your notes mention both a combination boiler and a cylinder. Which state should the Twin preserve?",
+    detail: "This must resolve as a bounded choice. Do not promote both as confirmed truth.",
     resolved: false,
     resolutions: [
       {
-        id: "confirm",
-        label: "Confirm as cylinder",
-        result: "Confirmed as cylinder evidence for promotion."
+        id: "combi-with-cylinder",
+        label: "Combination boiler with cylinder",
+        result: "Preserve both as a declared arrangement and ask which outlets are served on demand.",
+        followUp: "Which taps/outlets are served on demand by the combination boiler?"
       },
       {
-        id: "keep-candidate",
-        label: "Keep candidate",
-        result: "Preserved as candidate; it remains visible but is not promoted as confirmed truth."
+        id: "changed-boiler-type",
+        label: "Changed boiler type",
+        result: "Keep the cylinder unresolved and mark the boiler type as needing correction before promotion."
       },
       {
-        id: "reject",
-        label: "Reject",
-        result: "Rejected from promotion because the evidence is not sufficient."
+        id: "remove-cylinder",
+        label: "Remove cylinder",
+        result: "Reject the cylinder candidate and keep hot water as on-demand unless later evidence contradicts it."
+      }
+    ]
+  },
+  {
+    id: "network-no-ont",
+    type: "candidate",
+    title: "Broadband route without ONT",
+    question: "You tagged a communications route but no fibre ONT was captured. Please confirm this is not a fibre connection.",
+    detail: "Networking evidence needs a clear boundary between broadband entry, router, ONT and inferred route.",
+    resolved: false,
+    resolutions: [
+      {
+        id: "not-fibre",
+        label: "Not fibre",
+        result: "Preserve the route as non-fibre communications evidence; do not create an ONT component."
+      },
+      {
+        id: "ont-missing",
+        label: "ONT missing from capture",
+        result: "Create a follow-up for ONT location and keep the fibre connection unresolved."
+      },
+      {
+        id: "route-mistagged",
+        label: "Route was mistagged",
+        result: "Reject the network route candidate and keep only observed router evidence."
       }
     ]
   },
@@ -381,7 +464,8 @@ export const importReviewItems = [
     id: "unknown-occupancy",
     type: "unknown",
     title: "Occupancy and usage missing",
-    detail: "Home context is not complete until transcript questions are answered or marked unknown.",
+    question: "No transcript answer exists for occupancy, usage or performance context. How should Main carry this into the Twin?",
+    detail: "The Home layer must not invent usage facts. It can preserve unknowns or create a follow-up question.",
     resolved: false,
     resolutions: [
       {
@@ -400,6 +484,7 @@ export const importReviewItems = [
     id: "conflict-boiler-space",
     type: "conflict",
     title: "Boiler clearance conflicts with cupboard geometry",
+    question: "The proposed boiler clearance intersects captured cupboard geometry. Which evidence boundary should remain authoritative?",
     detail: "Proposed object evidence conflicts with captured wall/cupboard geometry.",
     resolved: false,
     resolutions: [
@@ -419,12 +504,12 @@ export const importReviewItems = [
 
 export const proposedBoilerConsequences = [
   {
-    id: "boiler-output",
+    id: "boiler-substitution",
     className: "changed",
-    title: "Boiler output",
-    current: "24 kW",
-    proposed: "35 kW",
-    result: "Changed assumption in proposed Twin only."
+    title: "Graph item substituted",
+    current: "Existing gas boiler",
+    proposed: "Replacement boiler candidate",
+    result: "The proposed copy substitutes the boiler graph node while preserving the current Twin."
   },
   {
     id: "primary-pipework-limit",
@@ -464,14 +549,14 @@ export const runTimeline = [
   {
     time: "00:00",
     title: "Demand starts",
-    state: "Hall thermostat calls for heat.",
-    active: "controls",
+    state: "Heating demand starts in the current/proposed heating system.",
+    active: "heating-demand",
     bottleneck: null
   },
   {
     time: "00:03",
     title: "Boiler fires",
-    state: "Proposed 35 kW boiler output is available at source.",
+    state: "The substituted boiler node is active in the proposed copy.",
     active: "boiler",
     bottleneck: null
   },
@@ -493,7 +578,7 @@ export const runTimeline = [
     time: "00:22",
     title: "Useful output plateaus",
     state: "More boiler output is not translated into useful room response without related system changes.",
-    active: "heat-loss",
+    active: "emitter-response",
     bottleneck: "controls"
   }
 ];

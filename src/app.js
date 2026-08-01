@@ -7,7 +7,6 @@ import {
 } from "./data.js";
 import {
   advanceRun,
-  applyManualTightenEdit,
   applyBoilerOutputChange,
   backOneLevel,
   canPromote,
@@ -24,8 +23,7 @@ import {
   selectNode,
   selectedId,
   selectedNode,
-  startRun,
-  updateTightenDraft
+  startRun
 } from "./model.js";
 
 const app = document.querySelector("#app");
@@ -35,10 +33,10 @@ let activeComponentId = "boiler";
 let runTimer = null;
 
 const routes = [
-  ["Main", "/main"],
-  ["Tighten", "/tighten"],
-  ["Clone", "/what-if"],
-  ["Run", "/run"],
+  ["Living Twin", "/main"],
+  ["Review", "/tighten"],
+  ["Change", "/what-if"],
+  ["Playback", "/run"],
   ["Capture Demo", "/capture-demo"]
 ];
 
@@ -100,12 +98,6 @@ document.addEventListener("click", (event) => {
   }
 });
 
-document.addEventListener("input", (event) => {
-  const field = event.target.closest("[data-tighten-draft]");
-  if (!field) return;
-  state = updateTightenDraft(state, field.dataset.tightenDraft, field.value);
-});
-
 window.addEventListener("hashchange", () => {
   render();
   syncRunTimer();
@@ -122,7 +114,6 @@ function handleAction(action, value, resolution) {
   if (action === "explain") state = openExplanation(state, value || "plain");
   if (action === "close-explain") state = { ...state, explanationOpen: false };
   if (action === "resolve") state = resolveTightenItem(state, value, resolution);
-  if (action === "manual-tighten") state = applyManualTightenEdit(state, value);
   if (action === "promote") {
     const result = promoteImport(state);
     state = result.state;
@@ -185,10 +176,10 @@ function shell(content) {
 
 function titleFor(route) {
   return {
-    "/main": "Main",
-    "/tighten": "Tighten Import",
-    "/what-if": "Scenario Twin",
-    "/run": "Run",
+    "/main": "Living Twin",
+    "/tighten": "Review & Complete",
+    "/what-if": "Change & Compare",
+    "/run": "Operate Playback",
     "/capture-demo": "Capture Demo"
   }[route] || "Main";
 }
@@ -234,6 +225,7 @@ function mainView() {
           <span><b>Room</b>${roomFor(activeComponent.roomId).label}</span>
           <span><b>Confidence</b>${activeComponent.confidence}</span>
           <span><b>Evidence</b>${activeComponent.evidence.length} refs</span>
+          <span><b>XYZ</b>${formatPosition(activeComponent.position)}</span>
         </div>
         <div class="evidence-chips">
           ${activeComponent.evidence.map((item) => `<span>${item}</span>`).join("")}
@@ -243,7 +235,7 @@ function mainView() {
           ${activeComponent.id === "boiler" ? `
             <button class="secondary" data-action="evidence">${icon("evidence")} Boiler evidence</button>
             <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain boiler</button>
-            <button class="primary" data-action="create-what-if">${icon("branch")} Create Scenario Twin</button>
+            <button class="primary" data-action="create-what-if">${icon("branch")} Change & Compare</button>
           ` : `
             <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain selected layer</button>
           `}
@@ -257,8 +249,8 @@ function mainView() {
       ${dimensionCard("Home", state.authoritativeTwin.dimensions.home)}
       <article class="lens-card unresolved-lens">
         <p class="eyebrow">Unresolved</p>
-        <h3>${state.reviewItems.filter((item) => !item.resolved).length} items need Tighten review</h3>
-        <a class="secondary" ${link("/tighten")}>Open Tighten review</a>
+        <h3>${state.reviewItems.filter((item) => !item.resolved).length} ambiguities need review</h3>
+        <a class="secondary" ${link("/tighten")}>Review & complete</a>
       </article>
     </section>
 
@@ -330,11 +322,14 @@ function graphicTwin(mode = "current") {
         </g>
         <g class="component-layer">
           ${spatialFixture.components.filter((component) => visible(component.domain)).map((component) => `
-            <g class="component-node ${component.domain} ${component.state} ${activeComponentId === component.id ? "selected" : ""} ${componentRunClass(component, runStep)}" data-component="${component.id}" tabindex="0" transform="translate(${component.x} ${component.y})">
+            <g class="component-node ${component.domain} ${component.state} ${activeComponentId === component.id ? "selected" : ""} ${componentRunClass(component, runStep)} ${isSubstituted(component) ? "substituted" : ""}" data-component="${component.id}" tabindex="0" transform="translate(${component.x} ${component.y})">
               ${componentShape(component)}
-              <text class="component-label" x="0" y="-22">${component.id === "boiler" && isProposed ? `${component.label} ${boilerOutput} kW` : component.label}</text>
+              <text class="component-label" x="0" y="-22">${componentDisplayLabel(component, isProposed, boilerOutput)}</text>
             </g>
           `).join("")}
+        </g>
+        <g class="comment-layer">
+          ${spatialFixture.comments.filter(commentVisible).map(renderComment).join("")}
         </g>
         ${hasConsequences ? `
           <g class="consequence-layer">
@@ -361,21 +356,67 @@ function graphicTwin(mode = "current") {
 function routeRunClass(route, runStep) {
   if (!runStep) return "";
   const activeRoutes = {
-    controls: ["power"],
-    boiler: ["primary", "water", "power"],
+    "heating-demand": ["primary"],
+    boiler: ["primary"],
     "primary-pipework": ["primary"],
-    "heat-loss": ["primary", "access"]
+    "emitter-response": ["primary"]
   }[runStep.active] || [];
   return activeRoutes.includes(route.id) ? "active" : "";
+}
+
+function formatPosition(position) {
+  if (!position) return "not located";
+  return `${position.x}, ${position.y}, ${position.z} ${position.unit}`;
+}
+
+function componentDisplayLabel(component, isProposed, boilerOutput) {
+  if (component.id === "boiler" && isProposed && state.proposedTwin) {
+    return `${state.proposedTwin.nodes.boiler.name} ${boilerOutput} kW`;
+  }
+  return component.label;
+}
+
+function isSubstituted(component) {
+  return state.proposedChanges.some((change) => (
+    change.type === "graph-item-substitution" && change.nodeId === component.id
+  ));
+}
+
+function commentVisible(comment) {
+  if (activeLayer === "all" || activeLayer === "evidence") return true;
+  if (comment.targetId === activeComponentId) return true;
+  const route = spatialFixture.routes.find((candidate) => candidate.id === comment.targetId);
+  return Boolean(route && route.componentIds?.includes(activeComponentId));
+}
+
+function renderComment(comment) {
+  const target = targetPointForComment(comment);
+  return `
+    <g class="comment-pin ${comment.targetId === activeComponentId ? "selected" : ""}">
+      <title>${comment.text} XYZ ${formatPosition(comment.position)}</title>
+      <path class="comment-leader" d="M${comment.x} ${comment.y} L${target.x} ${target.y}"/>
+      <rect class="comment-card" x="${comment.x - 48}" y="${comment.y - 24}" width="96" height="36" rx="10"/>
+      <text class="comment-label" x="${comment.x}" y="${comment.y - 4}">${comment.label}</text>
+      <text class="comment-xyz" x="${comment.x}" y="${comment.y + 10}">${comment.position.x},${comment.position.y},${comment.position.z}m</text>
+    </g>
+  `;
+}
+
+function targetPointForComment(comment) {
+  const component = spatialFixture.components.find((candidate) => candidate.id === comment.targetId);
+  if (component) return { x: component.x, y: component.y };
+  const route = spatialFixture.routes.find((candidate) => candidate.id === comment.targetId);
+  if (route) return routeLabelPosition(route);
+  return { x: comment.x, y: comment.y };
 }
 
 function componentRunClass(component, runStep) {
   if (!runStep) return "";
   const activeComponents = {
-    controls: ["consumer-unit", "socket"],
+    "heating-demand": ["boiler", "emitter"],
     boiler: ["boiler"],
     "primary-pipework": ["boiler", "emitter"],
-    "heat-loss": ["emitter", "threshold"]
+    "emitter-response": ["emitter"]
   }[runStep.active] || [];
   return activeComponents.includes(component.id) ? "active" : "";
 }
@@ -494,8 +535,8 @@ function contextualActions(node) {
     <div class="action-stack">
       <button class="secondary" data-action="evidence">${icon("evidence")} Boiler evidence</button>
       <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain selected ${node.type}</button>
-      <button class="primary" data-action="create-what-if">${icon("branch")} Create Scenario Twin</button>
-      <a class="secondary" ${link("/run")}>Run current system</a>
+      <button class="primary" data-action="create-what-if">${icon("branch")} Change & Compare</button>
+      <a class="secondary" ${link("/run")}>Play current behaviour</a>
     </div>
   `;
 }
@@ -537,13 +578,13 @@ function tightenView() {
     <section class="hero-card">
       <div>
         <p class="eyebrow">Temporary import review</p>
-        <h2>Tighten fresh Capture Package</h2>
-        <p>Resolve candidates, unknowns and conflicts before promoting the import into authoritative reality.</p>
+        <h2>Review & Complete Capture evidence</h2>
+        <p>Ambiguities become bounded questions. Choices preserve provenance and decide what may enter the authoritative Twin.</p>
       </div>
       <button class="primary" data-action="promote" ${blocked ? "disabled" : ""}>Promote to Authoritative Twin</button>
     </section>
     <section class="panel">
-      <h2>Review items</h2>
+      <h2>Ambiguity questions</h2>
       <div class="tighten-list">
         ${state.reviewItems.map((item) => `
           ${reviewItem(item)}
@@ -556,12 +597,13 @@ function tightenView() {
 
 function reviewItem(item) {
   return `
-    <article class="${item.type} ${item.resolved ? "resolved" : ""}">
+    <article class="ambiguity-card ${item.type} ${item.resolved ? "resolved" : ""}">
       <span>${item.resolved ? "resolved" : item.type}</span>
       <strong>${item.title}</strong>
+      ${item.question ? `<h3>${item.question}</h3>` : ""}
       <p>${item.detail}</p>
       ${item.action ? `<em>${item.action}</em>` : ""}
-      ${item.manualValue ? `<q>${item.manualValue}</q>` : ""}
+      ${item.followUp ? `<q>${item.followUp}</q>` : ""}
     </article>
   `;
 }
@@ -575,13 +617,11 @@ function resolutionActions(item) {
   return `
     <div class="resolution-actions">
       ${options.map((option) => `
-        <button class="secondary" data-action="resolve" data-value="${item.id}" data-resolution="${option.id}">${option.label}</button>
+        <button class="choice-card" data-action="resolve" data-value="${item.id}" data-resolution="${option.id}">
+          <strong>${option.label}</strong>
+          <span>${option.result}</span>
+        </button>
       `).join("")}
-    </div>
-    <div class="manual-tighten">
-      <label for="manual-${item.id}">Manual refinement when direct evidence is missing</label>
-      <textarea id="manual-${item.id}" data-tighten-draft="${item.id}" rows="4" placeholder="Record the known fact, source, and uncertainty. Example: Customer states Bedroom 2 is used by children; retain as customer_statement, not observed fact.">${state.tightenDrafts?.[item.id] || ""}</textarea>
-      <button class="primary" data-action="manual-tighten" data-value="${item.id}">Record manual refinement</button>
     </div>
   `;
 }
@@ -591,27 +631,27 @@ function whatIfView() {
   return shell(`
     <section class="hero-card proposed">
       <div>
-        <p class="eyebrow">${hasProposal ? "Proposed branch" : "Current reality only"}</p>
-        <h2>Scenario Twin clone</h2>
-        <p>Clone the Current Twin, change boiler output from 24 kW to 35 kW, and inspect causal consequences without mutating authoritative reality.</p>
+        <p class="eyebrow">${hasProposal ? "Proposed copy" : "Current reality only"}</p>
+        <h2>Change & Compare</h2>
+        <p>Copy the Current Twin, substitute the boiler graph item at the same XYZ location, and inspect causal consequences without mutating authoritative reality.</p>
       </div>
       <div class="action-stack compact">
-        <button class="primary" data-action="create-what-if">Create Scenario Twin</button>
-        <button class="secondary" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Apply 35 kW change</button>
+        <button class="primary" data-action="create-what-if">Create proposed copy</button>
+        <button class="secondary" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Substitute boiler item</button>
       </div>
     </section>
 
     <section class="compare-grid">
       <article class="panel current">
         <p class="eyebrow">Current Reality</p>
-        <h2>${state.authoritativeTwin.nodes.boiler.outputKw} kW boiler</h2>
+        <h2>${state.authoritativeTwin.nodes.boiler.name}</h2>
         <p>The authoritative Twin remains unchanged.</p>
         ${graphicTwin("current")}
       </article>
       <article class="panel proposed-copy">
-        <p class="eyebrow">Scenario Twin</p>
-        <h2>${hasProposal ? `${state.proposedTwin.nodes.boiler.outputKw} kW boiler` : "No proposed branch yet"}</h2>
-        <p>${hasProposal ? "This is a cloned branch with an explicit change set." : "Create a Scenario Twin before making changes."}</p>
+        <p class="eyebrow">Proposed copy</p>
+        <h2>${hasProposal ? state.proposedTwin.nodes.boiler.name : "No proposed copy yet"}</h2>
+        <p>${hasProposal ? "This copy has an explicit change set. The current Twin is unchanged." : "Create a proposed copy before making changes."}</p>
         ${hasProposal ? graphicTwin("proposed") : ""}
       </article>
     </section>
@@ -630,8 +670,8 @@ function whatIfView() {
         </div>
       ` : `<p>No proposed change has been applied yet.</p>`}
       <div class="action-row">
-        <button class="secondary" data-action="discard-what-if" ${hasProposal ? "" : "disabled"}>Discard proposed Twin</button>
-        <button class="primary" data-action="start-run" data-value="proposed" ${state.consequences.length ? "" : "disabled"}>Run proposed system</button>
+        <button class="secondary" data-action="discard-what-if" ${hasProposal ? "" : "disabled"}>Discard proposed copy</button>
+        <button class="primary" data-action="start-run" data-value="proposed" ${state.consequences.length ? "" : "disabled"}>Play proposed behaviour</button>
       </div>
     </section>
   `);
@@ -639,12 +679,12 @@ function whatIfView() {
 
 function runView() {
   const step = runTimeline[state.runStep];
-  const target = state.runTarget === "proposed" && state.proposedTwin ? "Scenario Twin" : "Current authoritative Twin";
+  const target = state.runTarget === "proposed" && state.proposedTwin ? "proposed copy" : "current authoritative Twin";
   return shell(`
     <section class="hero-card">
       <div>
         <p class="eyebrow">Time-based behaviour</p>
-        <h2>Run ${target}</h2>
+        <h2>Operate ${target}</h2>
         <p>Mocked operation over time. This explains behaviour and bottlenecks; it does not recommend a product.</p>
       </div>
       <div class="action-row">

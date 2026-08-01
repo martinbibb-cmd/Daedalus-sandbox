@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   advanceRun,
-  applyManualTightenEdit,
   applyBoilerOutputChange,
   canPromote,
   createInitialState,
@@ -12,9 +11,9 @@ import {
   resetRun,
   resolveTightenItem,
   routeFor,
-  startRun,
-  updateTightenDraft
+  startRun
 } from "../src/model.js";
+import { spatialFixture } from "../src/data.js";
 
 test("/main remains the Main entry route", () => {
   assert.equal(routeFor("#/main"), "/main");
@@ -23,7 +22,7 @@ test("/main remains the Main entry route", () => {
   assert.equal(routeFor(""), "/main");
 });
 
-test("Scenario Twin creates a proposed clone without mutating current reality", () => {
+test("proposed copy creates a branch without mutating current reality", () => {
   const current = createInitialState();
   const proposed = createWhatIf(current);
 
@@ -33,23 +32,53 @@ test("Scenario Twin creates a proposed clone without mutating current reality", 
   assert.equal(proposed.authoritativeTwin.nodes.boiler.outputKw, 24);
 });
 
-test("applying the boiler change generates expected consequences", () => {
+test("substituting a graph item generates expected consequences", () => {
   const current = createInitialState();
   const changed = applyBoilerOutputChange(createWhatIf(current), 35);
 
   assert.equal(changed.authoritativeTwin.nodes.boiler.outputKw, 24);
   assert.equal(changed.proposedTwin.nodes.boiler.outputKw, 35);
   assert.deepEqual(changed.proposedChanges[0], {
+    type: "graph-item-substitution",
     nodeId: "boiler",
-    field: "outputKw",
-    from: 24,
-    to: 35
+    from: "Existing gas boiler",
+    to: "Replacement boiler candidate",
+    preservesPosition: true,
+    position: {
+      x: 3.4,
+      y: 1.55,
+      z: 0.12,
+      unit: "m",
+      reference: "room-1 wall-local"
+    }
   });
+  assert.equal(changed.proposedTwin.nodes.boiler.substitutionFor, "Existing gas boiler");
+  assert.equal(changed.proposedTwin.nodes.boiler.name, "Replacement boiler candidate");
+  assert.ok(changed.consequences.some((item) => item.id === "boiler-substitution"));
   assert.ok(changed.consequences.some((item) => item.id === "primary-pipework-limit"));
   assert.ok(changed.consequences.some((item) => item.id === "controls-limit"));
 });
 
-test("discarding a Scenario Twin preserves the authoritative Twin", () => {
+test("spatial components and comments carry explicit xyz locations", () => {
+  for (const component of spatialFixture.components) {
+    assert.equal(component.position.unit, "m");
+    assert.equal(typeof component.position.x, "number");
+    assert.equal(typeof component.position.y, "number");
+    assert.equal(typeof component.position.z, "number");
+  }
+
+  for (const comment of spatialFixture.comments) {
+    assert.equal(comment.position.unit, "m");
+    assert.ok(comment.targetId);
+    assert.equal(typeof comment.x, "number");
+    assert.equal(typeof comment.y, "number");
+    assert.equal(typeof comment.position.x, "number");
+    assert.equal(typeof comment.position.y, "number");
+    assert.equal(typeof comment.position.z, "number");
+  }
+});
+
+test("discarding a proposed copy preserves the authoritative Twin", () => {
   const changed = applyBoilerOutputChange(createWhatIf(createInitialState()), 35);
   const discarded = discardWhatIf(changed);
 
@@ -58,7 +87,7 @@ test("discarding a Scenario Twin preserves the authoritative Twin", () => {
   assert.deepEqual(discarded.proposedChanges, []);
 });
 
-test("Run advances and resets", () => {
+test("operate playback advances and resets", () => {
   const state = createInitialState();
   const advanced = advanceRun(advanceRun(state));
   assert.equal(advanced.runStep, 2);
@@ -68,7 +97,7 @@ test("Run advances and resets", () => {
   assert.equal(reset.runPlaying, false);
 });
 
-test("Run restarts from the first step when replayed from the end", () => {
+test("operate playback restarts from the first step when replayed from the end", () => {
   let state = createInitialState();
   for (let index = 0; index < 10; index += 1) {
     state = advanceRun(state);
@@ -79,7 +108,7 @@ test("Run restarts from the first step when replayed from the end", () => {
   assert.equal(replaying.runPlaying, true);
 });
 
-test("Tighten cannot promote with unresolved blockers", () => {
+test("review cannot promote with unresolved blockers", () => {
   const state = createInitialState();
 
   assert.equal(canPromote(state), false);
@@ -88,7 +117,7 @@ test("Tighten cannot promote with unresolved blockers", () => {
   assert.equal(result.state.authoritativeTwin.version, 1);
 });
 
-test("Tighten can promote after blockers are resolved", () => {
+test("review can promote after blockers are resolved", () => {
   let state = createInitialState();
   for (const item of state.reviewItems) {
     state = resolveTightenItem(state, item.id);
@@ -100,7 +129,7 @@ test("Tighten can promote after blockers are resolved", () => {
   assert.equal(result.state.authoritativeTwin.version, 2);
 });
 
-test("Tighten records the chosen resolution rather than only confirming", () => {
+test("review records the chosen ambiguity resolution rather than only confirming", () => {
   const state = resolveTightenItem(createInitialState(), "unknown-occupancy", "mark-unknown");
   const item = state.reviewItems.find((candidate) => candidate.id === "unknown-occupancy");
 
@@ -109,25 +138,20 @@ test("Tighten records the chosen resolution rather than only confirming", () => 
   assert.match(item.action, /explicit unknown/);
 });
 
-test("Tighten supports manual refinement when direct evidence is missing", () => {
-  const drafted = updateTightenDraft(
-    createInitialState(),
-    "unknown-occupancy",
-    "Customer states Bedroom 2 is used by children; keep as customer_statement."
-  );
-  const refined = applyManualTightenEdit(drafted, "unknown-occupancy");
-  const item = refined.reviewItems.find((candidate) => candidate.id === "unknown-occupancy");
+test("review can preserve fibre ambiguity as a follow-up question", () => {
+  const state = resolveTightenItem(createInitialState(), "network-no-ont", "ont-missing");
+  const item = state.reviewItems.find((candidate) => candidate.id === "network-no-ont");
 
   assert.equal(item.resolved, true);
-  assert.equal(item.resolutionId, "manual-edit");
-  assert.match(item.manualValue, /customer_statement/);
-  assert.match(item.action, /Manual refinement recorded/);
+  assert.equal(item.resolutionId, "ont-missing");
+  assert.match(item.action, /follow-up for ONT location/);
 });
 
-test("empty manual refinement does not silently resolve a Tighten item", () => {
-  const refined = applyManualTightenEdit(createInitialState(), "unknown-occupancy");
-  const item = refined.reviewItems.find((candidate) => candidate.id === "unknown-occupancy");
+test("hot-water ambiguity captures the downstream follow-up", () => {
+  const state = resolveTightenItem(createInitialState(), "candidate-cylinder", "combi-with-cylinder");
+  const item = state.reviewItems.find((candidate) => candidate.id === "candidate-cylinder");
 
-  assert.equal(item.resolved, false);
-  assert.equal(item.manualValue, undefined);
+  assert.equal(item.resolved, true);
+  assert.equal(item.resolutionId, "combi-with-cylinder");
+  assert.match(item.followUp, /Which taps/);
 });
