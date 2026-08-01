@@ -8,36 +8,30 @@ import {
 import {
   advanceRun,
   applyBoilerOutputChange,
-  backOneLevel,
   canPromote,
   createInitialState,
   createWhatIf,
   discardWhatIf,
-  openEvidence,
-  openExplanation,
   pauseRun,
   promoteImport,
   resetRun,
   resolveTightenItem,
   routeFor,
-  selectNode,
-  selectedId,
-  selectedNode,
   startRun
 } from "./model.js";
 
 const app = document.querySelector("#app");
 let state = createInitialState();
 let activeLayer = "all";
-let activeComponentId = "boiler";
+let selectedComponentId = "boiler";
 let runTimer = null;
 
 const routes = [
-  ["Living Twin", "/main"],
-  ["Review", "/tighten"],
-  ["Change", "/what-if"],
-  ["Playback", "/run"],
-  ["Capture Demo", "/capture-demo"]
+  ["Place", "/main"],
+  ["Tighten", "/tighten"],
+  ["Clone", "/what-if"],
+  ["Operate", "/run"],
+  ["Capture", "/capture-demo"]
 ];
 
 function currentRoute() {
@@ -50,11 +44,11 @@ function link(route) {
 
 function icon(name) {
   const paths = {
-    tighten: "M12 3v18M5 8h14M7 16h10",
     home: "M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3v-9.5Z",
-    run: "M5 4v16l14-8L5 4Z",
-    branch: "M6 4v6a4 4 0 0 0 4 4h8M6 10h8a4 4 0 0 1 4 4v6",
-    camera: "M4 7h4l1.4-2h5.2L16 7h4v12H4V7Zm8 9a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z",
+    tighten: "M12 3v18M5 8h14M7 16h10",
+    clone: "M7 7h10v10H7zM4 4h10M10 20h10V10",
+    operate: "M5 4v16l14-8L5 4Z",
+    capture: "M4 7h4l1.4-2h5.2L16 7h4v12H4V7Zm8 9a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z",
     heat: "M13 3s2 2.2 0 5.4c-1.2 3 2.8 3.6 2.8 7A4.8 4.8 0 0 1 6.2 15c0-2.4 1.5-4 3.2-5.8C11 7.5 12 5.8 13 3Z",
     drop: "M12 3s6 6.2 6 11a6 6 0 0 1-12 0c0-4.8 6-11 6-11Z",
     bolt: "m13 2-8 12h6l-1 8 8-12h-6l1-8Z",
@@ -68,19 +62,12 @@ function icon(name) {
 }
 
 document.addEventListener("click", (event) => {
-  const routeLink = event.target.closest("[data-route]");
-  if (routeLink) return;
+  if (event.target.closest("[data-route]")) return;
 
   const action = event.target.closest("[data-action]");
   if (action) {
     handleAction(action.dataset.action, action.dataset.value, action.dataset.resolution);
     return;
-  }
-
-  const tag = event.target.closest("[data-tag]");
-  if (tag) {
-    state = { ...state, tagPath: [tag.dataset.group, tag.dataset.tag] };
-    render();
   }
 
   const layer = event.target.closest("[data-layer]");
@@ -92,8 +79,14 @@ document.addEventListener("click", (event) => {
 
   const component = event.target.closest("[data-component]");
   if (component) {
-    activeComponentId = component.dataset.component;
-    if (activeComponentId === "boiler") state = selectNode(state, "boiler");
+    selectedComponentId = component.dataset.component;
+    render();
+    return;
+  }
+
+  const tag = event.target.closest("[data-tag]");
+  if (tag) {
+    state = { ...state, tagPath: [tag.dataset.group, tag.dataset.tag] };
     render();
   }
 });
@@ -108,11 +101,6 @@ window.addEventListener("beforeunload", () => {
 });
 
 function handleAction(action, value, resolution) {
-  if (action === "select") state = selectNode(state, value);
-  if (action === "back") state = backOneLevel(state);
-  if (action === "evidence") state = openEvidence(state);
-  if (action === "explain") state = openExplanation(state, value || "plain");
-  if (action === "close-explain") state = { ...state, explanationOpen: false };
   if (action === "resolve") state = resolveTightenItem(state, value, resolution);
   if (action === "promote") {
     const result = promoteImport(state);
@@ -147,16 +135,16 @@ function syncRunTimer() {
     state = advanceRun(state);
     render();
     if (!state.runPlaying) syncRunTimer();
-  }, 1200);
+  }, 1100);
 }
 
 function shell(content) {
   const active = currentRoute();
   return `
-    <main class="app">
+    <main class="app place-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">${active === "/capture-demo" ? "Disposable Capture demo" : "Daedalus Main sandbox"}</p>
+          <p class="eyebrow">Daedalus Main sandbox</p>
           <h1>${titleFor(active)}</h1>
         </div>
         <a class="pill" ${link("/capture-demo")}>Capture demo</a>
@@ -165,7 +153,7 @@ function shell(content) {
       <nav class="tabbar">
         ${routes.map(([label, route]) => `
           <a ${link(route)} class="${active === route ? "active" : ""}">
-            ${icon(route === "/tighten" ? "tighten" : route === "/what-if" ? "branch" : route === "/run" ? "run" : route === "/capture-demo" ? "camera" : "home")}
+            ${icon(route === "/tighten" ? "tighten" : route === "/what-if" ? "clone" : route === "/run" ? "operate" : route === "/capture-demo" ? "capture" : "home")}
             <span>${label}</span>
           </a>
         `).join("")}
@@ -176,103 +164,29 @@ function shell(content) {
 
 function titleFor(route) {
   return {
-    "/main": "Living Twin",
-    "/tighten": "Review & Complete",
-    "/what-if": "Change & Compare",
-    "/run": "Operate Playback",
+    "/main": "Living Place Twin",
+    "/tighten": "Tighten Import",
+    "/what-if": "Clone & Substitute",
+    "/run": "Operate Twin",
     "/capture-demo": "Capture Demo"
-  }[route] || "Main";
+  }[route] || "Living Place Twin";
 }
 
-function mainView() {
-  const node = selectedNode(state);
-  const path = state.selectedPath;
-  const isEvidence = selectedId(state) === "boiler-evidence";
-  const activeComponent = selectedSpatialComponent();
-  return shell(`
-    <section class="mission-strip">
-      <div>
-        <p class="eyebrow">Current Reality · Authoritative</p>
-        <h2>${property.name}</h2>
-        <p>${property.address} · ${spatialFixture.rooms.length} captured spaces · ${spatialFixture.components.length} specialist records</p>
-      </div>
-      <div class="mission-metrics">
-        <span><b>Capture</b> v2 fixture</span>
-        <span><b>Authority</b> Current Twin v${state.authoritativeTwin.version}</span>
-        <span><b>Layer</b> ${labelForLayer(activeLayer)}</span>
-      </div>
-    </section>
-
-    <section class="living-workspace">
-      <article class="dollhouse-stage">
-        <div class="workspace-head">
-          <div>
-            <p class="eyebrow">Living Dollhouse Workspace</p>
-            <h2>Property as the interface</h2>
-          </div>
-          ${path.length > 1 ? `<button class="secondary small" data-action="back">Back</button>` : ""}
-        </div>
-        ${layerBar()}
-        ${breadcrumb(path)}
-        ${graphicTwin("current")}
-      </article>
-
-      <aside class="twin-inspector">
-        <p class="eyebrow">${activeComponent.domain} · ${activeComponent.state}</p>
-        <h2>${activeComponent.label}</h2>
-        <p>${activeComponent.summary}</p>
-        <div class="component-meta">
-          <span><b>Room</b>${roomFor(activeComponent.roomId).label}</span>
-          <span><b>Confidence</b>${activeComponent.confidence}</span>
-          <span><b>Evidence</b>${activeComponent.evidence.length} refs</span>
-          <span><b>XYZ</b>${formatPosition(activeComponent.position)}</span>
-        </div>
-        <div class="evidence-chips">
-          ${activeComponent.evidence.map((item) => `<span>${item}</span>`).join("")}
-        </div>
-        ${relationshipPanel(activeComponent)}
-        <div class="inspector-actions">
-          ${activeComponent.id === "boiler" ? `
-            <button class="secondary" data-action="evidence">${icon("evidence")} Boiler evidence</button>
-            <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain boiler</button>
-            <button class="primary" data-action="create-what-if">${icon("branch")} Change & Compare</button>
-          ` : `
-            <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain selected layer</button>
-          `}
-        </div>
-      </aside>
-    </section>
-
-    <section class="twin-lenses">
-      ${dimensionCard("House", state.authoritativeTwin.dimensions.house)}
-      ${dimensionCard("System", state.authoritativeTwin.dimensions.system)}
-      ${dimensionCard("Home", state.authoritativeTwin.dimensions.home)}
-      <article class="lens-card unresolved-lens">
-        <p class="eyebrow">Unresolved</p>
-        <h3>${state.reviewItems.filter((item) => !item.resolved).length} ambiguities need review</h3>
-        <a class="secondary" ${link("/tighten")}>Review & complete</a>
-      </article>
-    </section>
-
-    ${state.explanationOpen ? explanationPanel() : ""}
-  `);
-}
-
-function selectedSpatialComponent() {
-  return spatialFixture.components.find((item) => item.id === activeComponentId) || spatialFixture.components[0];
+function selectedComponent() {
+  return spatialFixture.components.find((item) => item.id === selectedComponentId) || spatialFixture.components[0];
 }
 
 function roomFor(roomId) {
   return spatialFixture.rooms.find((room) => room.id === roomId) || spatialFixture.rooms[0];
 }
 
-function labelForLayer(layerId) {
-  return spatialFixture.layers.find((layer) => layer.id === layerId)?.label || "All";
+function visibleDomain(domain) {
+  return activeLayer === "all" || activeLayer === domain || (activeLayer === "evidence" && domain === "evidence");
 }
 
 function layerBar() {
   return `
-    <div class="layer-bar" aria-label="Twin layer filters">
+    <div class="layer-bar" aria-label="Specialist overlays">
       ${spatialFixture.layers.map((layer) => `
         <button class="${activeLayer === layer.id ? "active" : ""}" data-layer="${layer.id}">${layer.label}</button>
       `).join("")}
@@ -280,263 +194,357 @@ function layerBar() {
   `;
 }
 
-function breadcrumb(path) {
+function modeIntro(mode) {
+  const selected = selectedComponent();
+  const unresolved = state.reviewItems.filter((item) => !item.resolved).length;
+  const copyState = state.proposedTwin ? "Clone active" : "Current only";
+  const runStep = runTimeline[state.runStep];
   return `
-    <div class="breadcrumb">
-      ${path.map((id, index) => {
-        const node = state.authoritativeTwin.nodes[id];
-        return `<button data-action="select" data-value="${id}" ${index === path.length - 1 ? "class=\"active\"" : ""}>${node.name}</button>`;
-      }).join("<span>/</span>")}
-    </div>
-  `;
-}
-
-function graphicTwin(mode = "current") {
-  const path = state.selectedPath;
-  const isBoilerFocus = path.includes("boiler") || selectedId(state) === "boiler-evidence";
-  const isProposed = mode === "proposed" && state.proposedTwin;
-  const hasConsequences = Boolean(state.consequences.length);
-  const runStep = mode === "run" ? runTimeline[state.runStep] : null;
-  const bottleneck = runStep?.bottleneck;
-  const boilerOutput = isProposed ? state.proposedTwin.nodes.boiler.outputKw : state.authoritativeTwin.nodes.boiler.outputKw;
-  const visible = (domain) => activeLayer === "all" || activeLayer === domain || (activeLayer === "evidence" && domain === "evidence");
-  return `
-    <div class="graphic-twin spatial ${mode} ${isBoilerFocus ? "focus-boiler" : ""} ${hasConsequences ? "has-consequences" : ""} ${bottleneck ? "has-bottleneck" : ""}">
-      <svg class="spatial-map" viewBox="0 0 740 620" role="img" aria-label="Spatial Living Dollhouse projection">
-        <defs>
-          <filter id="softGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        </defs>
-        <rect class="map-backdrop" x="0" y="0" width="740" height="620" rx="28"/>
-        <g class="room-layer">
-          ${spatialFixture.rooms.map((room) => `
-            <path class="captured-room ${room.confidence}" d="${room.path}" tabindex="0"/>
-            <text class="room-label" x="${roomCenter(room.path).x}" y="${roomCenter(room.path).y - 6}">${room.label}</text>
-            <text class="room-role" x="${roomCenter(room.path).x}" y="${roomCenter(room.path).y + 18}">${room.role}</text>
-          `).join("")}
-        </g>
-        <g class="route-layer">
-          ${spatialFixture.routes.filter((route) => visible(route.domain)).map((route) => `
-            <path class="system-route ${route.domain} ${isRouteSelected(route) ? "selected" : ""} ${routeRunClass(route, runStep)} ${hasConsequences && route.id === "primary" ? "constraint" : ""}" d="${routePath(route)}"/>
-            ${isRouteSelected(route) ? `<text class="route-label" x="${routeLabelPosition(route).x}" y="${routeLabelPosition(route).y}">${route.label}</text>` : ""}
-          `).join("")}
-        </g>
-        <g class="component-layer">
-          ${spatialFixture.components.filter((component) => visible(component.domain)).map((component) => `
-            <g class="component-node ${component.domain} ${component.state} ${activeComponentId === component.id ? "selected" : ""} ${componentRunClass(component, runStep)} ${isSubstituted(component) ? "substituted" : ""}" data-component="${component.id}" tabindex="0" transform="translate(${component.x} ${component.y})">
-              ${componentShape(component)}
-              <text class="component-label" x="0" y="-22">${componentDisplayLabel(component, isProposed, boilerOutput)}</text>
-            </g>
-          `).join("")}
-        </g>
-        <g class="comment-layer">
-          ${spatialFixture.comments.filter(commentVisible).map(renderComment).join("")}
-        </g>
-        ${hasConsequences ? `
-          <g class="consequence-layer">
-            <path class="constraint-zone" d="M280 210 L428 282 L240 432"/>
-            <text class="warning-label" x="425" y="260">Primary constraint</text>
-            <text class="warning-label small" x="500" y="220">controls evidence incomplete</text>
-          </g>
-        ` : ""}
-        ${runStep ? `
-          <g class="run-overlay">
-            <rect x="78" y="546" width="584" height="46" rx="12"/>
-            <text x="102" y="575">${runStep.time} · ${runStep.title}: ${runStep.state}</text>
-          </g>
-        ` : ""}
-      </svg>
-      <div class="map-caption">
-        <strong>${spatialFixture.captureId}</strong>
-        <span>${spatialFixture.note}</span>
+    <section class="place-context">
+      <div>
+        <p class="eyebrow">${property.type} · ${property.address}</p>
+        <h2>${property.name}</h2>
+        <p>${introText(mode)}</p>
       </div>
-    </div>
+      <div class="place-readouts">
+        <span><b>Selected</b>${selected.label}</span>
+        <span><b>Review</b>${unresolved} open</span>
+        <span><b>Clone</b>${copyState}</span>
+        <span><b>Operate</b>${runStep.time} ${runStep.title}</span>
+      </div>
+    </section>
   `;
 }
 
-function routeRunClass(route, runStep) {
-  if (!runStep) return "";
-  const activeRoutes = {
-    "heating-demand": ["primary"],
-    boiler: ["primary"],
-    "primary-pipework": ["primary"],
-    "emitter-response": ["primary"]
-  }[runStep.active] || [];
-  return activeRoutes.includes(route.id) ? "active" : "";
+function introText(mode) {
+  if (mode === "tighten") return "Ambiguities are pinned to real graph locations. The choices update provenance rather than merely confirming text.";
+  if (mode === "clone") return "Substitute graph items on the same spatial anchors. Current reality stays protected.";
+  if (mode === "run") return "The graph operates through the same place model. This is one coherent heating sequence, not disconnected mode events.";
+  return "The Place remains the interface. Specialist systems appear as overlays on the same captured geometry.";
 }
 
-function formatPosition(position) {
-  if (!position) return "not located";
-  return `${position.x}, ${position.y}, ${position.z} ${position.unit}`;
+function mainView() {
+  const component = selectedComponent();
+  return shell(`
+    ${modeIntro("main")}
+    <section class="place-workbench">
+      ${placeCanvas({ mode: "main" })}
+      ${componentInspector(component)}
+    </section>
+    <section class="lower-dock">
+      ${dimensionCard("House", state.authoritativeTwin.dimensions.house)}
+      ${dimensionCard("System", state.authoritativeTwin.dimensions.system)}
+      ${dimensionCard("Home", state.authoritativeTwin.dimensions.home)}
+    </section>
+  `);
 }
 
-function componentDisplayLabel(component, isProposed, boilerOutput) {
-  if (component.id === "boiler" && isProposed && state.proposedTwin) {
-    return `${state.proposedTwin.nodes.boiler.name} ${boilerOutput} kW`;
-  }
-  return component.label;
+function tightenView() {
+  const blocked = !canPromote(state);
+  return shell(`
+    ${modeIntro("tighten")}
+    <section class="place-workbench">
+      ${placeCanvas({ mode: "tighten" })}
+      <aside class="instrument-panel">
+        <p class="eyebrow">Spatial ambiguity pass</p>
+        <h2>Questions tied to the Twin</h2>
+        <p>Each question is tied to a route, component, or missing relationship. Manual answers preserve evidence class and confidence.</p>
+        <div class="tighten-questions">
+          ${state.reviewItems.map(reviewItem).join("")}
+        </div>
+        <button class="primary wide" data-action="promote" ${blocked ? "disabled" : ""}>Promote reviewed import</button>
+      </aside>
+    </section>
+  `);
 }
 
-function isSubstituted(component) {
-  return state.proposedChanges.some((change) => (
-    change.type === "graph-item-substitution" && change.nodeId === component.id
-  ));
+function cloneView() {
+  const hasProposal = Boolean(state.proposedTwin);
+  return shell(`
+    ${modeIntro("clone")}
+    <section class="place-workbench">
+      ${placeCanvas({ mode: "clone" })}
+      <aside class="instrument-panel">
+        <p class="eyebrow">Protected current · editable clone</p>
+        <h2>Substitute graph item</h2>
+        <p>The boiler node is replaced in a proposed copy while retaining the same XYZ anchor. The original component stays authoritative.</p>
+        <div class="clone-actions">
+          <button class="primary wide" data-action="create-what-if">Create clone</button>
+          <button class="secondary wide" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Substitute boiler at same location</button>
+          <button class="secondary wide" data-action="discard-what-if" ${hasProposal ? "" : "disabled"}>Discard clone</button>
+          <button class="primary wide" data-action="start-run" data-value="proposed" ${state.consequences.length ? "" : "disabled"}>Operate clone</button>
+        </div>
+        ${state.consequences.length ? consequenceList() : `<p class="quiet-note">No substitute applied yet.</p>`}
+      </aside>
+    </section>
+  `);
 }
 
-function commentVisible(comment) {
-  if (activeLayer === "all" || activeLayer === "evidence") return true;
-  if (comment.targetId === activeComponentId) return true;
-  const route = spatialFixture.routes.find((candidate) => candidate.id === comment.targetId);
-  return Boolean(route && route.componentIds?.includes(activeComponentId));
+function runView() {
+  const step = runTimeline[state.runStep];
+  return shell(`
+    ${modeIntro("run")}
+    <section class="place-workbench">
+      ${placeCanvas({ mode: "run" })}
+      <aside class="instrument-panel">
+        <p class="eyebrow">Single system operation</p>
+        <h2>${step.time} · ${step.title}</h2>
+        <p>${step.state}</p>
+        <div class="run-controls">
+          <button class="primary" data-action="${state.runPlaying ? "pause-run" : "start-run"}">${state.runPlaying ? "Pause" : "Play"}</button>
+          <button class="secondary" data-action="advance-run">Step</button>
+          <button class="secondary" data-action="reset-run">Reset</button>
+        </div>
+        <div class="timeline">
+          ${runTimeline.map((item, index) => `
+            <div class="${index === state.runStep ? "active" : ""}">
+              <span>${item.time}</span>
+              <strong>${item.title}</strong>
+              <p>${item.active === "primary-pipework" ? "Primary route highlighted in place." : "State projected onto the same heating graph."}</p>
+            </div>
+          `).join("")}
+        </div>
+      </aside>
+    </section>
+  `);
 }
 
-function renderComment(comment) {
-  const target = targetPointForComment(comment);
+function placeCanvas({ mode }) {
+  const component = selectedComponent();
+  const proposal = state.proposedTwin && (mode === "clone" || mode === "run");
+  const activeStep = mode === "run" ? runTimeline[state.runStep] : null;
   return `
-    <g class="comment-pin ${comment.targetId === activeComponentId ? "selected" : ""}">
-      <title>${comment.text} XYZ ${formatPosition(comment.position)}</title>
-      <path class="comment-leader" d="M${comment.x} ${comment.y} L${target.x} ${target.y}"/>
-      <rect class="comment-card" x="${comment.x - 48}" y="${comment.y - 24}" width="96" height="36" rx="10"/>
-      <text class="comment-label" x="${comment.x}" y="${comment.y - 4}">${comment.label}</text>
-      <text class="comment-xyz" x="${comment.x}" y="${comment.y + 10}">${comment.position.x},${comment.position.y},${comment.position.z}m</text>
+    <article class="place-canvas-card">
+      <div class="canvas-toolbar">
+        <div>
+          <p class="eyebrow">Living Place canvas</p>
+          <h2>Captured geometry with graph-backed overlays</h2>
+        </div>
+        ${layerBar()}
+      </div>
+      <div class="cad-viewport ${mode} ${proposal ? "proposal-active" : ""}">
+        <svg class="place-svg" viewBox="0 0 960 640" role="img" aria-label="CAD-style Place Twin sandbox mockup">
+          <defs>
+            <pattern id="floor-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
+            </pattern>
+            <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect class="cad-bg" x="0" y="0" width="960" height="640" rx="26"/>
+          <rect x="0" y="0" width="960" height="640" fill="url(#floor-grid)"/>
+          ${placeShell()}
+          ${routeLayer(activeStep)}
+          ${componentLayer(proposal, activeStep)}
+          ${tightenPins(mode)}
+          ${cloneOverlay(proposal)}
+          ${runOverlay(activeStep)}
+        </svg>
+      </div>
+      <div class="selected-strip">
+        <strong>${component.label}</strong>
+        <span>${roomFor(component.roomId).label} · ${component.domain} · ${formatPosition(component.position)}</span>
+      </div>
+    </article>
+  `;
+}
+
+function placeShell() {
+  const rooms = [
+    { id: "room-1", label: "Kitchen / plant", x: 108, y: 112, w: 344, h: 218 },
+    { id: "room-2", label: "Hall / service spine", x: 452, y: 112, w: 322, h: 218 },
+    { id: "room-3", label: "Living space", x: 108, y: 330, w: 410, h: 214 },
+    { id: "room-4", label: "Utility edge", x: 518, y: 330, w: 256, h: 214 }
+  ];
+  return `
+    <g class="place-shell-svg">
+      <path class="outer-wall" d="M108 112H774V544H108Z"/>
+      <path class="inner-wall" d="M452 112V330H108M452 330H774M518 330V544"/>
+      <path class="opening" d="M432 330H472M518 410V458M268 330H326"/>
+      ${rooms.map((room) => `
+        <rect class="room-plate" x="${room.x}" y="${room.y}" width="${room.w}" height="${room.h}"/>
+        <text class="room-name" x="${room.x + 18}" y="${room.y + 30}">${room.label}</text>
+      `).join("")}
+      <path class="exterior-path" d="M108 562H774"/>
+      <text class="scale-label" x="108" y="594">0m</text>
+      <path class="scale-bar" d="M142 588H302"/>
+      <text class="scale-label" x="314" y="594">4m mock scale</text>
     </g>
   `;
 }
 
-function targetPointForComment(comment) {
-  const component = spatialFixture.components.find((candidate) => candidate.id === comment.targetId);
-  if (component) return { x: component.x, y: component.y };
-  const route = spatialFixture.routes.find((candidate) => candidate.id === comment.targetId);
-  if (route) return routeLabelPosition(route);
-  return { x: comment.x, y: comment.y };
+function routeLayer(activeStep) {
+  return `
+    <g class="route-layer-svg">
+      ${spatialFixture.routes.filter((route) => visibleDomain(route.domain)).map((route) => `
+        <path class="route-svg ${route.domain} ${route.id === "primary" && activeStep ? "run-active" : ""} ${route.id === "primary" && activeStep?.bottleneck ? "route-bottleneck" : ""}" d="${route.d}"/>
+        ${route.componentIds?.includes(selectedComponentId) || activeStep?.active === "primary-pipework" ? `<text class="route-text" x="${routeLabelPosition(route).x}" y="${routeLabelPosition(route).y}">${route.label}</text>` : ""}
+      `).join("")}
+    </g>
+  `;
 }
 
-function componentRunClass(component, runStep) {
-  if (!runStep) return "";
-  const activeComponents = {
-    "heating-demand": ["boiler", "emitter"],
+function componentLayer(proposal, activeStep) {
+  return `
+    <g class="component-layer-svg">
+      ${spatialFixture.components.filter((item) => visibleDomain(item.domain)).map((item) => {
+        const isActive = item.id === selectedComponentId || runComponentIds(activeStep).includes(item.id);
+        return `
+          <g class="component-svg ${item.domain} ${item.state} ${isActive ? "selected" : ""} ${proposal && item.id === "boiler" ? "substituted" : ""}" data-component="${item.id}" transform="translate(${item.x} ${item.y})">
+            ${componentShape(item)}
+            <text class="component-text" x="0" y="-22">${proposal && item.id === "boiler" ? "Replacement boiler" : item.label}</text>
+          </g>
+        `;
+      }).join("")}
+    </g>
+  `;
+}
+
+function tightenPins(mode) {
+  if (mode !== "tighten") return "";
+  return `
+    <g class="tighten-pins">
+      ${state.reviewItems.filter((item) => !item.resolved).map((item, index) => {
+        const point = reviewPoint(item, index);
+        return `
+          <g class="review-pin ${item.type}" transform="translate(${point.x} ${point.y})">
+            <circle r="13"/>
+            <text x="0" y="5">${index + 1}</text>
+          </g>
+        `;
+      }).join("")}
+    </g>
+  `;
+}
+
+function cloneOverlay(proposal) {
+  if (!proposal) return "";
+  return `
+    <g class="clone-overlay">
+      <rect x="268" y="126" width="64" height="104" rx="7"/>
+      <path d="M300 230V438H210"/>
+      <text x="350" y="154">proposed boiler node</text>
+      <text x="350" y="177">same wall-local XYZ</text>
+    </g>
+  `;
+}
+
+function runOverlay(step) {
+  if (!step) return "";
+  return `
+    <g class="operation-overlay">
+      <rect x="108" y="34" width="666" height="48" rx="14"/>
+      <text x="132" y="64">${step.time} · ${step.title} · ${step.state}</text>
+    </g>
+  `;
+}
+
+function runComponentIds(step) {
+  if (!step) return [];
+  return {
+    "heating-demand": ["controls", "boiler", "emitter"],
     boiler: ["boiler"],
     "primary-pipework": ["boiler", "emitter"],
     "emitter-response": ["emitter"]
-  }[runStep.active] || [];
-  return activeComponents.includes(component.id) ? "active" : "";
+  }[step.active] || [];
+}
+
+function reviewPoint(item, index) {
+  const map = {
+    "candidate-cylinder": { x: 300, y: 170 },
+    "network-no-ont": { x: 604, y: 142 },
+    "unknown-occupancy": { x: 286, y: 444 },
+    "conflict-boiler-space": { x: 300, y: 170 }
+  };
+  return map[item.id] || { x: 150 + index * 52, y: 92 };
+}
+
+function componentShape(component) {
+  if (component.id === "boiler") return `<rect class="component-body" x="-18" y="-28" width="36" height="56" rx="4"/><circle r="5"/>`;
+  if (component.domain === "heating") return `<circle class="component-body" r="17"/><path d="M-8 0h16M0-8v16"/>`;
+  if (component.domain === "water") return `<path class="component-body" d="M0-18C16 0 12 18 0 18C-12 18-16 0 0-18Z"/>`;
+  if (component.domain === "electrical") return `<rect class="component-body" x="-15" y="-15" width="30" height="30" rx="4"/><path d="M-6 0h12M0-6v12"/>`;
+  if (component.domain === "network") return `<rect class="component-body" x="-18" y="-12" width="36" height="24" rx="5"/><path d="M-10-2h20M-7 5h14"/>`;
+  if (component.domain === "access") return `<path class="component-body" d="M-18 16H18V-16"/><path d="M-16 13C0 8 10-2 18-16"/>`;
+  return `<circle class="component-body" r="16"/>`;
+}
+
+function componentInspector(component) {
+  return `
+    <aside class="instrument-panel">
+      <p class="eyebrow">${component.domain} · ${component.state}</p>
+      <h2>${component.label}</h2>
+      <p>${component.summary}</p>
+      <div class="component-meta">
+        <span><b>Room</b>${roomFor(component.roomId).label}</span>
+        <span><b>Confidence</b>${component.confidence}</span>
+        <span><b>XYZ</b>${formatPosition(component.position)}</span>
+        <span><b>Evidence</b>${component.evidence.length} refs</span>
+      </div>
+      <div class="evidence-chips">
+        ${component.evidence.map((item) => `<span>${item}</span>`).join("")}
+      </div>
+      ${relationshipPanel(component)}
+      <div class="inspector-actions">
+        <a class="secondary" ${link("/tighten")}>Tighten related evidence</a>
+        <button class="primary" data-action="create-what-if">Clone and substitute</button>
+      </div>
+    </aside>
+  `;
 }
 
 function relationshipPanel(component) {
   const routes = spatialFixture.routes.filter((route) => route.componentIds?.includes(component.id));
   if (!routes.length) {
-    return `
-      <div class="relationship-panel empty">
-        <strong>No route relationship yet</strong>
-        <p>This item is spatially located but no route or connection has been evidenced in the Sandbox fixture.</p>
-      </div>
-    `;
+    return `<div class="relationship-panel empty"><strong>No evidenced route yet</strong><p>This graph item is spatially located, but no route relationship is authoritative.</p></div>`;
   }
   return `
     <div class="relationship-panel">
-      <strong>Connected relationships</strong>
-      ${routes.map((route) => `
-        <article class="${route.domain}">
-          <span>${route.domain}</span>
-          <b>${route.label}</b>
-          <p>${route.evidenceState}</p>
+      <strong>Graph relationships projected in place</strong>
+      ${routes.map((route) => `<article class="${route.domain}"><span>${route.domain}</span><b>${route.label}</b><p>${route.evidenceState}</p></article>`).join("")}
+    </div>
+  `;
+}
+
+function reviewItem(item) {
+  const point = reviewPoint(item, 0);
+  return `
+    <article class="ambiguity-card ${item.type} ${item.resolved ? "resolved" : ""}">
+      <span>${item.resolved ? "resolved" : item.type}</span>
+      <strong>${item.title}</strong>
+      <p class="xyz-readout">XYZ ${point.x}, ${point.y}, 0.00 canvas · target ${item.id}</p>
+      ${item.question ? `<h3>${item.question}</h3>` : ""}
+      <p>${item.detail}</p>
+      ${item.action ? `<em>${item.action}</em>` : ""}
+      ${item.followUp ? `<q>${item.followUp}</q>` : ""}
+      ${item.resolved ? "" : resolutionActions(item)}
+    </article>
+  `;
+}
+
+function resolutionActions(item) {
+  const options = item.resolutions || [{ id: "resolve", label: "Resolve", result: "Resolved in sandbox review" }];
+  return `
+    <div class="resolution-actions">
+      ${options.map((option) => `
+        <button class="choice-card" data-action="resolve" data-value="${item.id}" data-resolution="${option.id}">
+          <strong>${option.label}</strong>
+          <span>${option.result}</span>
+        </button>
+      `).join("")}
+    </div>
+  `;
+}
+
+function consequenceList() {
+  return `
+    <div class="impact-chain compact-chain">
+      ${state.consequences.map((item) => `
+        <article class="${item.className}">
+          <span>${item.title}</span>
+          <strong>${item.current} -> ${item.proposed}</strong>
+          <p>${item.result}</p>
         </article>
       `).join("")}
-    </div>
-  `;
-}
-
-function isRouteSelected(route) {
-  return route.componentIds?.includes(activeComponentId);
-}
-
-function routePath(route) {
-  if (route.d) return route.d;
-  const points = route.points?.trim().split(/\s+/) || [];
-  return points.map((point, index) => {
-    const [x, y] = point.split(",");
-    return `${index === 0 ? "M" : "L"}${x} ${y}`;
-  }).join(" ");
-}
-
-function routeLabelPosition(route) {
-  const numbers = routePath(route).match(/-?\d+/g)?.map(Number) || [360, 310];
-  const xs = numbers.filter((_, index) => index % 2 === 0);
-  const ys = numbers.filter((_, index) => index % 2 === 1);
-  return {
-    x: xs[Math.floor(xs.length / 2)] || 360,
-    y: (ys[Math.floor(ys.length / 2)] || 310) - 14
-  };
-}
-
-function roomCenter(path) {
-  const numbers = path.match(/-?\d+/g)?.map(Number) || [0, 0];
-  const xs = numbers.filter((_, index) => index % 2 === 0);
-  const ys = numbers.filter((_, index) => index % 2 === 1);
-  return {
-    x: xs.reduce((sum, value) => sum + value, 0) / xs.length,
-    y: ys.reduce((sum, value) => sum + value, 0) / ys.length
-  };
-}
-
-function componentShape(component) {
-  if (component.id === "boiler") {
-    return `<rect class="component-body boiler-body" x="-18" y="-26" width="36" height="52" rx="5"/><circle class="component-core" r="5"/>`;
-  }
-  if (component.domain === "electrical") {
-    return `<rect class="component-body" x="-14" y="-14" width="28" height="28" rx="4"/><path d="M-5 0h10M0-5v10"/>`;
-  }
-  if (component.domain === "water") {
-    return `<path class="component-body" d="M0-16 C14 0 12 16 0 18 C-12 16 -14 0 0-16Z"/>`;
-  }
-  if (component.domain === "network") {
-    return `<rect class="component-body" x="-18" y="-12" width="36" height="24" rx="5"/><path d="M-10-2h20M-7 5h14"/>`;
-  }
-  if (component.domain === "access") {
-    return `<path class="component-body" d="M-16 14 L16 14 L16-14"/><path d="M-14 12 C2 8 10-2 16-14"/>`;
-  }
-  return `<circle class="component-body" r="15"/><path d="M-8 0h16M0-8v16"/>`;
-}
-
-function factList(node) {
-  if (!node.facts?.length) return "";
-  return `
-    <div class="fact-list">
-      ${node.facts.map((fact) => `
-        <div class="${fact.state}">
-          <span>${fact.state}</span>
-          <strong>${fact.label}</strong>
-          <p>${fact.value}</p>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-function evidenceList(node) {
-  return `
-    <div class="evidence-list">
-      ${node.evidence.map((item) => `
-        <article class="${item.state}">
-          <span>${item.kind}</span>
-          <strong>${item.title}</strong>
-          <p>${item.provenance}</p>
-          <em>${item.state}</em>
-        </article>
-      `).join("")}
-    </div>
-  `;
-}
-
-function contextualActions(node) {
-  if (node.id !== "boiler" && node.id !== "heating") {
-    return `<button class="secondary" data-action="select" data-value="boiler">Select boiler</button>`;
-  }
-  return `
-    <div class="action-stack">
-      <button class="secondary" data-action="evidence">${icon("evidence")} Boiler evidence</button>
-      <button class="secondary" data-action="explain" data-value="plain">${icon("explain")} Explain selected ${node.type}</button>
-      <button class="primary" data-action="create-what-if">${icon("branch")} Change & Compare</button>
-      <a class="secondary" ${link("/run")}>Play current behaviour</a>
     </div>
   `;
 }
@@ -551,165 +559,19 @@ function dimensionCard(name, dimension) {
   `;
 }
 
-function explanationPanel() {
-  const mode = explanationText[state.explanationMode] || explanationText.plain;
-  return `
-    <section class="panel explanation">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Explain · ${selectedNode(state).name}</p>
-          <h2>${mode.title}</h2>
-        </div>
-        <button class="secondary small" data-action="close-explain">Close</button>
-      </div>
-      <p>${mode.body}</p>
-      <div class="shortcut-list">
-        ${Object.entries(explanationText).map(([key, item]) => `
-          <button class="${state.explanationMode === key ? "active" : ""}" data-action="explain" data-value="${key}">${item.title}</button>
-        `).join("")}
-      </div>
-    </section>
-  `;
+function formatPosition(position) {
+  if (!position) return "not located";
+  return `${position.x}, ${position.y}, ${position.z} ${position.unit}`;
 }
 
-function tightenView() {
-  const blocked = !canPromote(state);
-  return shell(`
-    <section class="hero-card">
-      <div>
-        <p class="eyebrow">Temporary import review</p>
-        <h2>Review & Complete Capture evidence</h2>
-        <p>Ambiguities become bounded questions. Choices preserve provenance and decide what may enter the authoritative Twin.</p>
-      </div>
-      <button class="primary" data-action="promote" ${blocked ? "disabled" : ""}>Promote to Authoritative Twin</button>
-    </section>
-    <section class="panel">
-      <h2>Ambiguity questions</h2>
-      <div class="tighten-list">
-        ${state.reviewItems.map((item) => `
-          ${reviewItem(item)}
-          ${item.resolved ? "" : resolutionActions(item)}
-        `).join("")}
-      </div>
-    </section>
-  `);
-}
-
-function reviewItem(item) {
-  return `
-    <article class="ambiguity-card ${item.type} ${item.resolved ? "resolved" : ""}">
-      <span>${item.resolved ? "resolved" : item.type}</span>
-      <strong>${item.title}</strong>
-      ${item.question ? `<h3>${item.question}</h3>` : ""}
-      <p>${item.detail}</p>
-      ${item.action ? `<em>${item.action}</em>` : ""}
-      ${item.followUp ? `<q>${item.followUp}</q>` : ""}
-    </article>
-  `;
-}
-
-function resolutionActions(item) {
-  const options = item.resolutions || [{
-    id: "resolve",
-    label: "Resolve",
-    result: "Resolved in sandbox review"
-  }];
-  return `
-    <div class="resolution-actions">
-      ${options.map((option) => `
-        <button class="choice-card" data-action="resolve" data-value="${item.id}" data-resolution="${option.id}">
-          <strong>${option.label}</strong>
-          <span>${option.result}</span>
-        </button>
-      `).join("")}
-    </div>
-  `;
-}
-
-function whatIfView() {
-  const hasProposal = Boolean(state.proposedTwin);
-  return shell(`
-    <section class="hero-card proposed">
-      <div>
-        <p class="eyebrow">${hasProposal ? "Proposed copy" : "Current reality only"}</p>
-        <h2>Change & Compare</h2>
-        <p>Copy the Current Twin, substitute the boiler graph item at the same XYZ location, and inspect causal consequences without mutating authoritative reality.</p>
-      </div>
-      <div class="action-stack compact">
-        <button class="primary" data-action="create-what-if">Create proposed copy</button>
-        <button class="secondary" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Substitute boiler item</button>
-      </div>
-    </section>
-
-    <section class="compare-grid">
-      <article class="panel current">
-        <p class="eyebrow">Current Reality</p>
-        <h2>${state.authoritativeTwin.nodes.boiler.name}</h2>
-        <p>The authoritative Twin remains unchanged.</p>
-        ${graphicTwin("current")}
-      </article>
-      <article class="panel proposed-copy">
-        <p class="eyebrow">Proposed copy</p>
-        <h2>${hasProposal ? state.proposedTwin.nodes.boiler.name : "No proposed copy yet"}</h2>
-        <p>${hasProposal ? "This copy has an explicit change set. The current Twin is unchanged." : "Create a proposed copy before making changes."}</p>
-        ${hasProposal ? graphicTwin("proposed") : ""}
-      </article>
-    </section>
-
-    <section class="panel">
-      <h2>Causal consequences</h2>
-      ${state.consequences.length ? `
-        <div class="impact-chain">
-          ${state.consequences.map((item) => `
-            <article class="${item.className}">
-              <span>${item.title}</span>
-              <strong>${item.current} -> ${item.proposed}</strong>
-              <p>${item.result}</p>
-            </article>
-          `).join("")}
-        </div>
-      ` : `<p>No proposed change has been applied yet.</p>`}
-      <div class="action-row">
-        <button class="secondary" data-action="discard-what-if" ${hasProposal ? "" : "disabled"}>Discard proposed copy</button>
-        <button class="primary" data-action="start-run" data-value="proposed" ${state.consequences.length ? "" : "disabled"}>Play proposed behaviour</button>
-      </div>
-    </section>
-  `);
-}
-
-function runView() {
-  const step = runTimeline[state.runStep];
-  const target = state.runTarget === "proposed" && state.proposedTwin ? "proposed copy" : "current authoritative Twin";
-  return shell(`
-    <section class="hero-card">
-      <div>
-        <p class="eyebrow">Time-based behaviour</p>
-        <h2>Operate ${target}</h2>
-        <p>Mocked operation over time. This explains behaviour and bottlenecks; it does not recommend a product.</p>
-      </div>
-      <div class="action-row">
-        <button class="primary" data-action="${state.runPlaying ? "pause-run" : "start-run"}">${state.runPlaying ? "Pause" : "Play"}</button>
-        <button class="secondary" data-action="advance-run">Step</button>
-        <button class="secondary" data-action="reset-run">Reset</button>
-      </div>
-    </section>
-    <section class="run-board">
-      ${graphicTwin("run")}
-      <aside class="panel">
-        <p class="eyebrow">${step.time}</p>
-        <h2>${step.title}</h2>
-        <p>${step.state}</p>
-        <div class="timeline">
-          ${runTimeline.map((item, index) => `
-            <div class="${index === state.runStep ? "active" : ""}">
-              <span>${item.time}</span>
-              <strong>${item.title}</strong>
-            </div>
-          `).join("")}
-        </div>
-      </aside>
-    </section>
-  `);
+function routeLabelPosition(route) {
+  const numbers = route.d.match(/-?\d+/g)?.map(Number) || [360, 310];
+  const xs = numbers.filter((_, index) => index % 2 === 0);
+  const ys = numbers.filter((_, index) => index % 2 === 1);
+  return {
+    x: xs[Math.floor(xs.length / 2)] || 360,
+    y: (ys[Math.floor(ys.length / 2)] || 310) - 18
+  };
 }
 
 function capcom() {
@@ -741,7 +603,7 @@ function captureDemoView() {
       ${tagRail("left")}
       ${tagRail("right")}
       <div class="readiness-ring"></div>
-      <div class="thumbnail">${icon("camera")}</div>
+      <div class="thumbnail">${icon("capture")}</div>
       <div class="dollhouse"></div>
       <button class="shutter" aria-label="Capture evidence"></button>
       <button class="finish-room">Finish Room</button>
@@ -756,7 +618,7 @@ function render() {
   const views = {
     "/main": mainView,
     "/tighten": tightenView,
-    "/what-if": whatIfView,
+    "/what-if": cloneView,
     "/run": runView,
     "/capture-demo": captureDemoView
   };

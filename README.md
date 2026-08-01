@@ -36,9 +36,9 @@ npm test
 ## Routes
 
 - `#/main` - primary Main proof-of-concept entry point
-- `#/tighten` - Review & Complete, temporary ambiguity resolution for imported evidence.
-- `#/what-if` - Change & Compare, proposed-copy branch and comparison. The route is retained for compatibility.
-- `#/run` - Operate Playback, mocked time-based system behaviour.
+- `#/tighten` - Tighten Import, temporary ambiguity resolution for imported evidence.
+- `#/what-if` - Clone & Substitute, proposed-copy branch and comparison. The route is retained for compatibility.
+- `#/run` - Operate Twin, mocked time-based system behaviour.
 - `#/capture-demo` - separate Capture interaction demo
 
 Older links such as `#/home`, `#/command`, `#/reasoning`, and `#/scenarios` enter `#/main`.
@@ -63,7 +63,7 @@ The fixture is a visual projection, not production geometry stitching. It should
 
 ## Product Rules Demonstrated
 
-- The Twin is the noun; Change/Compare and Operate/Playback are verbs applied to it.
+- The Twin is the noun; Clone/Substitute and Operate are verbs applied to it.
 - The graph is internal implementation. The user sees a graphic Twin of the Place, system, room, route, surface or component.
 - Graph-derived consequences must be projected back onto the Place/system graphic.
 - Review & Complete is temporary ambiguity resolution for a fresh import, not a permanent workspace.
@@ -72,7 +72,7 @@ The fixture is a visual projection, not production geometry stitching. It should
 - Explain is contextual to the selected object or behaviour.
 - Proposed-copy cloning preserves authoritative reality and never mutates it.
 - Clone/Change operations substitute graph items and preserve their spatial anchors unless the change explicitly moves them.
-- Operate Playback explains behaviour and bottlenecks over time; it does not recommend a product.
+- Operate explains behaviour and bottlenecks over time; it does not recommend a product.
 - A visible node-and-edge graph is not a normal product view.
 - Visible controls must change data, navigation, selection, rendered information, simulation state, or a contextual explanation.
 

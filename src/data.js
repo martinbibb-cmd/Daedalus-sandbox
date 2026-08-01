@@ -135,7 +135,7 @@ export const authoritativeTwin = {
 export const spatialFixture = {
   source: "Capture v2 RoomPlan session summary, 2026-07-10T09:38:24.242Z",
   captureId: "daedalus-roomplan-session-2026-07-10T09-38-24.242Z",
-  note: "Design storyboard: graph-backed components projected onto a wireframe property view with customer-readable labels. This is not production RoomPlan stitching.",
+  note: "Design-intent fixture: graph-backed components projected onto one wireframe Place view with customer-readable labels. This is not production RoomPlan stitching.",
   rooms: [
     {
       id: "room-1",
