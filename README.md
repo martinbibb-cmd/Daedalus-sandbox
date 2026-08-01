@@ -76,6 +76,12 @@ The fixture is a visual projection, not production geometry stitching. It should
 - A visible node-and-edge graph is not a normal product view.
 - Visible controls must change data, navigation, selection, rendered information, simulation state, or a contextual explanation.
 
+## Visual Target
+
+The intended visual direction is documented in `docs/SANDBOX_VISUAL_TARGET.md`.
+
+In short: Sandbox should evolve toward a CAD/BIM-style living property twin where WiFi, heating and accessibility are projections over the same captured geometry. Tighten and proposed-copy editing must become spatial/CAD-like tools, not text workflows.
+
 ## Production Boundary
 
 Nothing here changes the Constitution, Capture architecture, Contracts schemas, Platform storage, authentication, or real Main implementation.
