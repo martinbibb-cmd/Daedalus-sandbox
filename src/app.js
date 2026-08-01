@@ -337,8 +337,16 @@ function placeCanvas({ mode }) {
           <svg class="place-svg" viewBox="0 0 960 640" role="img" aria-label="CAD-style Place Twin sandbox mockup">
             <defs>
               <pattern id="floor-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-                <path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
+                <path d="M32 0H0V32" fill="none" stroke="rgba(20,22,26,.055)" stroke-width="1"/>
               </pattern>
+              <linearGradient id="roomSurface" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#ffffff"/>
+                <stop offset="1" stop-color="#dfe5ec"/>
+              </linearGradient>
+              <linearGradient id="wallFace" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#cbd5df"/>
+                <stop offset="1" stop-color="#9ba8b8"/>
+              </linearGradient>
               <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             </defs>
             <rect class="cad-bg" x="0" y="0" width="960" height="640" rx="26"/>
@@ -478,17 +486,37 @@ function placeShell() {
   ];
   return `
     <g class="place-shell-svg">
-      <path class="outer-wall" d="M108 112H774V544H108Z"/>
-      <path class="inner-wall" d="M452 112V330H108M452 330H774M518 330V544"/>
-      <path class="opening" d="M432 330H472M518 410V458M268 330H326"/>
-      ${rooms.map((room) => `
-        <rect class="room-plate" x="${room.x}" y="${room.y}" width="${room.w}" height="${room.h}"/>
-        <text class="room-name" x="${room.x + 18}" y="${room.y + 30}">${room.label}</text>
-      `).join("")}
+      <g class="dollhouse-shadow">
+        <path d="M126 566 L802 566 L846 520 L172 520 Z"/>
+      </g>
+      ${rooms.map((room) => dollhouseRoom(room)).join("")}
+      <path class="outer-wall iso-wall-line" d="M108 112H774V544H108Z"/>
+      <path class="inner-wall iso-wall-line" d="M452 112V330H108M452 330H774M518 330V544"/>
+      <path class="opening iso-opening" d="M432 330H472M518 410V458M268 330H326"/>
       <path class="exterior-path" d="M108 562H774"/>
       <text class="scale-label" x="108" y="594">0m</text>
       <path class="scale-bar" d="M142 588H302"/>
       <text class="scale-label" x="314" y="594">4m mock scale</text>
+    </g>
+  `;
+}
+
+function dollhouseRoom(room) {
+  const lift = 34;
+  const depth = 22;
+  const x = room.x;
+  const y = room.y;
+  const w = room.w;
+  const h = room.h;
+  return `
+    <g class="dollhouse-room" data-room="${room.id}">
+      <path class="room-side south" d="M${x} ${y + h}H${x + w}L${x + w} ${y + h + depth}H${x}Z"/>
+      <path class="room-side east" d="M${x + w} ${y}V${y + h}L${x + w} ${y + h + depth}V${y + depth}Z"/>
+      <rect class="room-plate" x="${x}" y="${y}" width="${w}" height="${h}" rx="2"/>
+      <path class="room-wall north" d="M${x} ${y}H${x + w}V${y + lift}H${x}Z"/>
+      <path class="room-wall west" d="M${x} ${y}V${y + h}H${x + lift}V${y}Z"/>
+      <text class="room-name" x="${x + w / 2}" y="${y + h / 2 - 4}">${room.label}</text>
+      <text class="room-role" x="${x + w / 2}" y="${y + h / 2 + 16}">captured room volume</text>
     </g>
   `;
 }
