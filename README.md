@@ -9,7 +9,7 @@ Its current purpose is to demonstrate the intended Daedalus Main design language
 3. Select graph-backed rooms, routes and components through the graphic.
 4. Inspect customer-readable image/label overlays attached to graph items at real XYZ locations.
 5. Review ambiguities as multiple-choice questions, not free-text forms.
-6. Create a proposed copy of the current Twin and substitute graph items without mutating reality.
+6. Create an editable clone of the current Twin and apply graph/spatial edits without mutating reality.
 7. Play mocked system behaviour through visible property overlays.
 8. Discard the proposed copy and return to unchanged current reality.
 
@@ -37,7 +37,7 @@ npm test
 
 - `#/main` - primary Main proof-of-concept entry point
 - `#/tighten` - Tighten Import, temporary ambiguity resolution for imported evidence.
-- `#/what-if` - Clone & Substitute, proposed-copy branch and comparison. The route is retained for compatibility.
+- `#/what-if` - Clone & Edit, editable branch and comparison. The route is retained for compatibility.
 - `#/run` - Operate Twin, mocked time-based system behaviour.
 - `#/capture-demo` - separate Capture interaction demo
 
@@ -57,13 +57,13 @@ The current `#/main` screen is intentionally spatial-first:
 - the visible graphic is built from graph-backed components/routes on a wireframe, with labels/images for customer understanding;
 - every graph-backed component and comment annotation has an explicit XYZ location in the fixture;
 - operational playback uses graph relationships to light routes and affected components on the dollhouse;
-- proposed copies substitute graph items at their preserved spatial anchors rather than editing current reality.
+- clone edits alter graph items at their preserved spatial anchors without editing current reality.
 
 The fixture is a visual projection, not production geometry stitching. It should be judged as a design-intent smoke test, not as a replacement for Main's authoritative renderer.
 
 ## Product Rules Demonstrated
 
-- The Twin is the noun; Clone/Substitute and Operate are verbs applied to it.
+- The Twin is the noun; Clone/Edit and Operate are verbs applied to it.
 - The graph is internal implementation. The user sees a graphic Twin of the Place, system, room, route, surface or component.
 - Graph-derived consequences must be projected back onto the Place/system graphic.
 - Review & Complete is temporary ambiguity resolution for a fresh import, not a permanent workspace.
@@ -71,7 +71,7 @@ The fixture is a visual projection, not production geometry stitching. It should
 - Zoom is contextual selection and drill-down through the graphic Twin.
 - Explain is contextual to the selected object or behaviour.
 - Proposed-copy cloning preserves authoritative reality and never mutates it.
-- Clone/Change operations substitute graph items and preserve their spatial anchors unless the change explicitly moves them.
+- Clone/Edit operations alter graph items and preserve their spatial anchors unless the edit explicitly moves them.
 - Operate explains behaviour and bottlenecks over time; it does not recommend a product.
 - A visible node-and-edge graph is not a normal product view.
 - Visible controls must change data, navigation, selection, rendered information, simulation state, or a contextual explanation.

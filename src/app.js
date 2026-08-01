@@ -166,7 +166,7 @@ function titleFor(route) {
   return {
     "/main": "Living Place Twin",
     "/tighten": "Tighten Import",
-    "/what-if": "Clone & Substitute",
+    "/what-if": "Clone & Edit",
     "/run": "Operate Twin",
     "/capture-demo": "Capture Demo"
   }[route] || "Living Place Twin";
@@ -218,7 +218,7 @@ function modeIntro(mode) {
 
 function introText(mode) {
   if (mode === "tighten") return "Ambiguities are pinned to real graph locations. The choices update provenance rather than merely confirming text.";
-  if (mode === "clone") return "Substitute graph items on the same spatial anchors. Current reality stays protected.";
+  if (mode === "clone") return "Clone creates an editable Twin branch. Edits keep their spatial anchors unless the change explicitly moves them; Current reality stays protected.";
   if (mode === "run") return "The graph operates through the same place model. This is one coherent heating sequence, not disconnected mode events.";
   return "The Place remains the interface. Specialist systems appear as overlays on the same captured geometry.";
 }
@@ -266,15 +266,15 @@ function cloneView() {
       ${placeCanvas({ mode: "clone" })}
       <aside class="instrument-panel">
         <p class="eyebrow">Protected current · editable clone</p>
-        <h2>Substitute graph item</h2>
-        <p>The boiler node is replaced in a proposed copy while retaining the same XYZ anchor. The original component stays authoritative.</p>
+        <h2>Edit cloned Twin</h2>
+        <p>The boiler node is edited in the clone while retaining the same XYZ anchor. The original Current Twin stays authoritative and runnable.</p>
         <div class="clone-actions">
           <button class="primary wide" data-action="create-what-if">Create clone</button>
-          <button class="secondary wide" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Substitute boiler at same location</button>
+          <button class="secondary wide" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Edit boiler at same location</button>
           <button class="secondary wide" data-action="discard-what-if" ${hasProposal ? "" : "disabled"}>Discard clone</button>
           <button class="primary wide" data-action="start-run" data-value="proposed" ${state.consequences.length ? "" : "disabled"}>Operate clone</button>
         </div>
-        ${state.consequences.length ? consequenceList() : `<p class="quiet-note">No substitute applied yet.</p>`}
+        ${state.consequences.length ? consequenceList() : `<p class="quiet-note">No clone edits applied yet.</p>`}
       </aside>
     </section>
   `);
@@ -389,7 +389,7 @@ function componentLayer(proposal, activeStep) {
       ${spatialFixture.components.filter((item) => visibleDomain(item.domain)).map((item) => {
         const isActive = item.id === selectedComponentId || runComponentIds(activeStep).includes(item.id);
         return `
-          <g class="component-svg ${item.domain} ${item.state} ${isActive ? "selected" : ""} ${proposal && item.id === "boiler" ? "substituted" : ""}" data-component="${item.id}" transform="translate(${item.x} ${item.y})">
+          <g class="component-svg ${item.domain} ${item.state} ${isActive ? "selected" : ""} ${proposal && item.id === "boiler" ? "edited" : ""}" data-component="${item.id}" transform="translate(${item.x} ${item.y})">
             ${componentShape(item)}
             <text class="component-text" x="0" y="-22">${proposal && item.id === "boiler" ? "Replacement boiler" : item.label}</text>
           </g>
@@ -486,7 +486,7 @@ function componentInspector(component) {
       ${relationshipPanel(component)}
       <div class="inspector-actions">
         <a class="secondary" ${link("/tighten")}>Tighten related evidence</a>
-        <button class="primary" data-action="create-what-if">Clone and substitute</button>
+        <button class="primary" data-action="create-what-if">Clone and edit</button>
       </div>
     </aside>
   `;

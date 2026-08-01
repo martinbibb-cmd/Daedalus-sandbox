@@ -119,25 +119,26 @@ export function createWhatIf(state) {
   return next;
 }
 
-export function substituteGraphItem(state, nodeId = "boiler", replacement = replacementBoiler) {
+export function editGraphItem(state, nodeId = "boiler", edit = replacementBoiler) {
   const next = state.proposedTwin ? clone(state) : createWhatIf(state);
   const currentNode = state.authoritativeTwin.nodes[nodeId];
   if (!currentNode) return next;
-  const replacementNode = {
+  const editedNode = {
     ...clone(currentNode),
-    ...clone(replacement),
+    ...clone(edit),
     id: nodeId,
-    substitutionFor: currentNode.name,
-    preservedPosition: replacement.position || currentNode.position
+    editedFrom: currentNode.name,
+    preservedPosition: edit.position || currentNode.position
   };
-  next.proposedTwin.nodes[nodeId] = replacementNode;
+  next.proposedTwin.nodes[nodeId] = editedNode;
   next.proposedChanges = [{
-    type: "graph-item-substitution",
-    nodeId: "boiler",
+    type: "graph-item-edit",
+    editKind: "component-replacement",
+    nodeId,
     from: currentNode.name,
-    to: replacementNode.name,
+    to: editedNode.name,
     preservesPosition: true,
-    position: replacementNode.preservedPosition || replacementNode.position
+    position: editedNode.preservedPosition || editedNode.position
   }];
   next.consequences = clone(proposedBoilerConsequences);
   next.comparisonOpen = true;
@@ -145,7 +146,7 @@ export function substituteGraphItem(state, nodeId = "boiler", replacement = repl
 }
 
 export function applyBoilerOutputChange(state) {
-  return substituteGraphItem(state, "boiler", replacementBoiler);
+  return editGraphItem(state, "boiler", replacementBoiler);
 }
 
 export function discardWhatIf(state) {

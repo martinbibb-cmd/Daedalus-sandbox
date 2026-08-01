@@ -388,10 +388,10 @@ export const replacementBoiler = {
   id: "boiler",
   type: "component",
   name: "Replacement boiler candidate",
-  status: "proposed substitute",
+  status: "clone edit",
   outputKw: 35,
-  substitutedFor: "Existing gas boiler",
-  summary: "Proposed copy substitutes the boiler graph item while retaining its spatial anchor and evidence boundary.",
+  editedFrom: "Existing gas boiler",
+  summary: "The clone edits the boiler graph item while retaining its spatial anchor and evidence boundary.",
   position: { x: 3.4, y: 1.55, z: 0.12, unit: "m", reference: "room-1 wall-local" },
   facts: [
     { label: "Proposed output", value: "35 kW", state: "proposed" },
@@ -504,12 +504,12 @@ export const importReviewItems = [
 
 export const proposedBoilerConsequences = [
   {
-    id: "boiler-substitution",
+    id: "boiler-edit",
     className: "changed",
-    title: "Graph item substituted",
+    title: "Graph item edited",
     current: "Existing gas boiler",
     proposed: "Replacement boiler candidate",
-    result: "The proposed copy substitutes the boiler graph node while preserving the current Twin."
+    result: "The clone edits the boiler graph node while preserving the current Twin."
   },
   {
     id: "primary-pipework-limit",
@@ -556,7 +556,7 @@ export const runTimeline = [
   {
     time: "00:03",
     title: "Boiler fires",
-    state: "The substituted boiler node is active in the proposed copy.",
+    state: "The edited boiler node is active in the clone.",
     active: "boiler",
     bottleneck: null
   },

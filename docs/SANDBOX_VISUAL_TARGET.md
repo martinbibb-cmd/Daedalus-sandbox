@@ -97,11 +97,11 @@ Ambiguities should appear as bounded questions with clear choices. If a manual s
 
 ## Clone Must Be CAD-Like
 
-A proposed copy should allow graph items to be substituted, moved or resized within the Place model.
+An editable clone should allow graph items to be replaced, moved or resized within the Place model.
 
 Examples:
 
-- substitute a boiler graph item while preserving its wall-local XYZ anchor;
+- replace a boiler graph item while preserving its wall-local XYZ anchor;
 - move the proposed boiler on the selected wall plane;
 - swap an emitter and show affected rooms/routes;
 - add a router and inspect expected coverage consequences;
@@ -134,6 +134,6 @@ The next useful Sandbox visual tranche should demonstrate:
 3. Routed paths that respect geometry instead of straight-line shortcuts.
 4. A Heating playback that operates as one connected system.
 5. A Tighten ambiguity that opens a spatial edit or bounded choice.
-6. A Clone operation that substitutes or moves a graph item on the property.
+6. A Clone operation that edits or moves a graph item on the property.
 7. Evidence and comments with real XYZ locations.
 8. No fake behaviour presented as authoritative truth.

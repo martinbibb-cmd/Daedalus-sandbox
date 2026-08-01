@@ -1254,13 +1254,13 @@ p { color: var(--muted); line-height: 1.38; }
 .component-svg.evidence .component-body { fill: #9fe7ff; }
 
 .component-svg.selected .component-body,
-.component-svg.substituted .component-body {
+.component-svg.edited .component-body {
   stroke: #ffffff;
   stroke-width: 4;
   filter: url(#glow);
 }
 
-.component-svg.substituted .component-body {
+.component-svg.edited .component-body {
   fill: #ffffff;
 }
 
@@ -2208,7 +2208,7 @@ body {
   stroke-width: 5;
 }
 
-.component-node.substituted .component-body {
+.component-node.edited .component-body {
   fill: #ffffff;
   stroke: #f59e0b;
   stroke-width: 6;

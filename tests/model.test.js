@@ -32,14 +32,15 @@ test("proposed copy creates a branch without mutating current reality", () => {
   assert.equal(proposed.authoritativeTwin.nodes.boiler.outputKw, 24);
 });
 
-test("substituting a graph item generates expected consequences", () => {
+test("editing a graph item in a clone generates expected consequences", () => {
   const current = createInitialState();
   const changed = applyBoilerOutputChange(createWhatIf(current), 35);
 
   assert.equal(changed.authoritativeTwin.nodes.boiler.outputKw, 24);
   assert.equal(changed.proposedTwin.nodes.boiler.outputKw, 35);
   assert.deepEqual(changed.proposedChanges[0], {
-    type: "graph-item-substitution",
+    type: "graph-item-edit",
+    editKind: "component-replacement",
     nodeId: "boiler",
     from: "Existing gas boiler",
     to: "Replacement boiler candidate",
@@ -52,9 +53,9 @@ test("substituting a graph item generates expected consequences", () => {
       reference: "room-1 wall-local"
     }
   });
-  assert.equal(changed.proposedTwin.nodes.boiler.substitutionFor, "Existing gas boiler");
+  assert.equal(changed.proposedTwin.nodes.boiler.editedFrom, "Existing gas boiler");
   assert.equal(changed.proposedTwin.nodes.boiler.name, "Replacement boiler candidate");
-  assert.ok(changed.consequences.some((item) => item.id === "boiler-substitution"));
+  assert.ok(changed.consequences.some((item) => item.id === "boiler-edit"));
   assert.ok(changed.consequences.some((item) => item.id === "primary-pipework-limit"));
   assert.ok(changed.consequences.some((item) => item.id === "controls-limit"));
 });
