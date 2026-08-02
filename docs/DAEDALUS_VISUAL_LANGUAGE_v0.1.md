@@ -174,7 +174,7 @@ It may show:
 - provenance;
 - uncertainty;
 - contributor or origin;
-- contextual Explain, Refine, What If or Run actions.
+- contextual Explain, Refine, Clone/Edit or Operate actions.
 
 ### Timeline
 

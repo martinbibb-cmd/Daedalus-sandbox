@@ -9,9 +9,9 @@ import {
   advanceRun,
   applyBoilerOutputChange,
   canPromote,
+  createEditableClone,
   createInitialState,
-  createWhatIf,
-  discardWhatIf,
+  discardEditableClone,
   pauseRun,
   promoteImport,
   resetRun,
@@ -29,7 +29,7 @@ let runTimer = null;
 const routes = [
   ["Place", "/main"],
   ["Tighten", "/tighten"],
-  ["Clone", "/what-if"],
+  ["Clone", "/clone"],
   ["Operate", "/run"],
   ["Capture", "/capture-demo"]
 ];
@@ -107,12 +107,12 @@ function handleAction(action, value, resolution) {
     state = result.state;
     if (result.promoted) window.location.hash = "#/main";
   }
-  if (action === "create-what-if") {
-    state = createWhatIf(state);
-    window.location.hash = "#/what-if";
+  if (action === "create-clone") {
+    state = createEditableClone(state);
+    window.location.hash = "#/clone";
   }
   if (action === "apply-output") state = applyBoilerOutputChange(state, Number(value));
-  if (action === "discard-what-if") state = discardWhatIf(state);
+  if (action === "discard-clone") state = discardEditableClone(state);
   if (action === "start-run") {
     state = startRun(state, value || undefined);
     if (currentRoute() !== "/run") window.location.hash = "#/run";
@@ -153,7 +153,7 @@ function shell(content) {
       <nav class="tabbar">
         ${routes.map(([label, route]) => `
           <a ${link(route)} class="${active === route ? "active" : ""}">
-            ${icon(route === "/tighten" ? "tighten" : route === "/what-if" ? "clone" : route === "/run" ? "operate" : route === "/capture-demo" ? "capture" : "home")}
+            ${icon(route === "/tighten" ? "tighten" : route === "/clone" ? "clone" : route === "/run" ? "operate" : route === "/capture-demo" ? "capture" : "home")}
             <span>${label}</span>
           </a>
         `).join("")}
@@ -166,7 +166,7 @@ function titleFor(route) {
   return {
     "/main": "Living Place Twin",
     "/tighten": "Tighten Import",
-    "/what-if": "Clone & Edit",
+    "/clone": "Clone & Edit",
     "/run": "Operate Twin",
     "/capture-demo": "Capture Demo"
   }[route] || "Living Place Twin";
@@ -269,9 +269,9 @@ function cloneView() {
         <h2>Edit cloned Twin</h2>
         <p>The boiler node is edited in the clone while retaining the same XYZ anchor. The original Current Twin stays authoritative and runnable.</p>
         <div class="clone-actions">
-          <button class="primary wide" data-action="create-what-if">Create clone</button>
+          <button class="primary wide" data-action="create-clone">Create clone</button>
           <button class="secondary wide" data-action="apply-output" data-value="35" ${hasProposal ? "" : "disabled"}>Edit boiler at same location</button>
-          <button class="secondary wide" data-action="discard-what-if" ${hasProposal ? "" : "disabled"}>Discard clone</button>
+          <button class="secondary wide" data-action="discard-clone" ${hasProposal ? "" : "disabled"}>Discard clone</button>
           <button class="primary wide" data-action="start-run" data-value="proposed" ${state.consequences.length ? "" : "disabled"}>Operate clone</button>
         </div>
         ${state.consequences.length ? consequenceList() : `<p class="quiet-note">No clone edits applied yet.</p>`}
@@ -540,7 +540,7 @@ function componentLayer(proposal, activeStep) {
         return `
           <g class="component-svg ${item.domain} ${item.state} ${isActive ? "selected" : ""} ${proposal && item.id === "boiler" ? "edited" : ""}" data-component="${item.id}" transform="translate(${item.x} ${item.y})">
             ${componentShape(item)}
-            <text class="component-text" x="0" y="-22">${proposal && item.id === "boiler" ? "Replacement boiler" : item.label}</text>
+            <text class="component-text" x="0" y="-22">${proposal && item.id === "boiler" ? "Edited boiler" : item.label}</text>
           </g>
         `;
       }).join("")}
@@ -571,7 +571,7 @@ function cloneOverlay(proposal) {
     <g class="clone-overlay">
       <rect x="268" y="126" width="64" height="104" rx="7"/>
       <path d="M300 230V438H210"/>
-      <text x="350" y="154">proposed boiler node</text>
+      <text x="350" y="154">edited boiler node</text>
       <text x="350" y="177">same wall-local XYZ</text>
     </g>
   `;
@@ -635,7 +635,7 @@ function componentInspector(component) {
       ${relationshipPanel(component)}
       <div class="inspector-actions">
         <a class="secondary" ${link("/tighten")}>Tighten related evidence</a>
-        <button class="primary" data-action="create-what-if">Clone and edit</button>
+        <button class="primary" data-action="create-clone">Clone and edit</button>
       </div>
     </aside>
   `;
@@ -767,7 +767,7 @@ function render() {
   const views = {
     "/main": mainView,
     "/tighten": tightenView,
-    "/what-if": cloneView,
+    "/clone": cloneView,
     "/run": runView,
     "/capture-demo": captureDemoView
   };

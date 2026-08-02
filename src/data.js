@@ -384,14 +384,14 @@ export const spatialFixture = {
   ]
 };
 
-export const replacementBoiler = {
+export const editedBoiler = {
   id: "boiler",
   type: "component",
-  name: "Replacement boiler candidate",
+  name: "Edited boiler node",
   status: "clone edit",
   outputKw: 35,
   editedFrom: "Existing gas boiler",
-  summary: "The clone edits the boiler graph item while retaining its spatial anchor and evidence boundary.",
+  summary: "The clone edits the existing boiler graph item while retaining its spatial anchor and evidence boundary.",
   position: { x: 3.4, y: 1.55, z: 0.12, unit: "m", reference: "room-1 wall-local" },
   facts: [
     { label: "Proposed output", value: "35 kW", state: "proposed" },
@@ -508,7 +508,7 @@ export const proposedBoilerConsequences = [
     className: "changed",
     title: "Graph item edited",
     current: "Existing gas boiler",
-    proposed: "Replacement boiler candidate",
+    proposed: "Edited boiler node",
     result: "The clone edits the boiler graph node while preserving the current Twin."
   },
   {

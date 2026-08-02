@@ -97,17 +97,17 @@ Ambiguities should appear as bounded questions with clear choices. If a manual s
 
 ## Clone Must Be CAD-Like
 
-An editable clone should allow graph items to be replaced, moved or resized within the Place model.
+An editable clone should allow graph items to be added, removed, moved, resized, reclassified or reconnected within the Place model.
 
 Examples:
 
-- replace a boiler graph item while preserving its wall-local XYZ anchor;
-- move the proposed boiler on the selected wall plane;
-- swap an emitter and show affected rooms/routes;
+- edit a boiler graph item while preserving its wall-local XYZ anchor;
+- move an edited boiler on the selected wall plane;
+- edit an emitter and show affected rooms/routes;
 - add a router and inspect expected coverage consequences;
-- widen a doorway in the proposed copy and show route/access consequences.
+- widen a doorway in the editable clone and show route/access consequences.
 
-The current Twin must remain unchanged. The proposed copy records explicit graph/spatial changes.
+The current Twin must remain unchanged. The editable clone records explicit graph/spatial changes.
 
 ## Graph Rule
 

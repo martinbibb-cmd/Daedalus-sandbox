@@ -2,15 +2,17 @@ import {
   authoritativeTwin,
   importReviewItems,
   proposedBoilerConsequences,
-  replacementBoiler,
+  editedBoiler,
   runTimeline
 } from "./data.js";
 
 const MAIN_ROUTES = new Set(["", "/home", "/main", "/twin", "/command", "/reasoning", "/scenarios"]);
+const CLONE_ROUTES = new Set(["/clone", "/what-if"]);
 
 export function routeFor(hashRoute) {
   const route = hashRoute.replace(/^#/, "");
   if (MAIN_ROUTES.has(route)) return "/main";
+  if (CLONE_ROUTES.has(route)) return "/clone";
   return route.startsWith("/") ? route : "/main";
 }
 
@@ -106,11 +108,11 @@ export function promoteImport(state) {
   return { state: next, promoted: true };
 }
 
-export function createWhatIf(state) {
+export function createEditableClone(state) {
   const next = clone(state);
   next.proposedTwin = clone(next.authoritativeTwin);
   next.proposedTwin.id = `${next.authoritativeTwin.id}-clone`;
-  next.proposedTwin.label = "Proposed Twin copy";
+  next.proposedTwin.label = "Editable Twin clone";
   next.proposedTwin.authority = "proposed";
   next.proposedChanges = [];
   next.consequences = [];
@@ -119,8 +121,8 @@ export function createWhatIf(state) {
   return next;
 }
 
-export function editGraphItem(state, nodeId = "boiler", edit = replacementBoiler) {
-  const next = state.proposedTwin ? clone(state) : createWhatIf(state);
+export function editGraphItem(state, nodeId = "boiler", edit = editedBoiler) {
+  const next = state.proposedTwin ? clone(state) : createEditableClone(state);
   const currentNode = state.authoritativeTwin.nodes[nodeId];
   if (!currentNode) return next;
   const editedNode = {
@@ -133,7 +135,7 @@ export function editGraphItem(state, nodeId = "boiler", edit = replacementBoiler
   next.proposedTwin.nodes[nodeId] = editedNode;
   next.proposedChanges = [{
     type: "graph-item-edit",
-    editKind: "component-replacement",
+    editKind: "component-edit",
     nodeId,
     from: currentNode.name,
     to: editedNode.name,
@@ -146,10 +148,10 @@ export function editGraphItem(state, nodeId = "boiler", edit = replacementBoiler
 }
 
 export function applyBoilerOutputChange(state) {
-  return editGraphItem(state, "boiler", replacementBoiler);
+  return editGraphItem(state, "boiler", editedBoiler);
 }
 
-export function discardWhatIf(state) {
+export function discardEditableClone(state) {
   const next = clone(state);
   next.proposedTwin = null;
   next.proposedChanges = [];

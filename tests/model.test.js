@@ -4,9 +4,9 @@ import {
   advanceRun,
   applyBoilerOutputChange,
   canPromote,
+  createEditableClone,
   createInitialState,
-  createWhatIf,
-  discardWhatIf,
+  discardEditableClone,
   promoteImport,
   resetRun,
   resolveTightenItem,
@@ -19,12 +19,14 @@ test("/main remains the Main entry route", () => {
   assert.equal(routeFor("#/main"), "/main");
   assert.equal(routeFor("/main"), "/main");
   assert.equal(routeFor("#/twin"), "/main");
+  assert.equal(routeFor("#/clone"), "/clone");
+  assert.equal(routeFor("#/what-if"), "/clone");
   assert.equal(routeFor(""), "/main");
 });
 
-test("proposed copy creates a branch without mutating current reality", () => {
+test("editable clone creates a branch without mutating current reality", () => {
   const current = createInitialState();
-  const proposed = createWhatIf(current);
+  const proposed = createEditableClone(current);
 
   assert.equal(current.proposedTwin, null);
   assert.equal(proposed.proposedTwin.authority, "proposed");
@@ -34,16 +36,16 @@ test("proposed copy creates a branch without mutating current reality", () => {
 
 test("editing a graph item in a clone generates expected consequences", () => {
   const current = createInitialState();
-  const changed = applyBoilerOutputChange(createWhatIf(current), 35);
+  const changed = applyBoilerOutputChange(createEditableClone(current), 35);
 
   assert.equal(changed.authoritativeTwin.nodes.boiler.outputKw, 24);
   assert.equal(changed.proposedTwin.nodes.boiler.outputKw, 35);
   assert.deepEqual(changed.proposedChanges[0], {
     type: "graph-item-edit",
-    editKind: "component-replacement",
+    editKind: "component-edit",
     nodeId: "boiler",
     from: "Existing gas boiler",
-    to: "Replacement boiler candidate",
+    to: "Edited boiler node",
     preservesPosition: true,
     position: {
       x: 3.4,
@@ -54,7 +56,7 @@ test("editing a graph item in a clone generates expected consequences", () => {
     }
   });
   assert.equal(changed.proposedTwin.nodes.boiler.editedFrom, "Existing gas boiler");
-  assert.equal(changed.proposedTwin.nodes.boiler.name, "Replacement boiler candidate");
+  assert.equal(changed.proposedTwin.nodes.boiler.name, "Edited boiler node");
   assert.ok(changed.consequences.some((item) => item.id === "boiler-edit"));
   assert.ok(changed.consequences.some((item) => item.id === "primary-pipework-limit"));
   assert.ok(changed.consequences.some((item) => item.id === "controls-limit"));
@@ -79,9 +81,9 @@ test("spatial components and comments carry explicit xyz locations", () => {
   }
 });
 
-test("discarding a proposed copy preserves the authoritative Twin", () => {
-  const changed = applyBoilerOutputChange(createWhatIf(createInitialState()), 35);
-  const discarded = discardWhatIf(changed);
+test("discarding an editable clone preserves the authoritative Twin", () => {
+  const changed = applyBoilerOutputChange(createEditableClone(createInitialState()), 35);
+  const discarded = discardEditableClone(changed);
 
   assert.equal(discarded.proposedTwin, null);
   assert.equal(discarded.authoritativeTwin.nodes.boiler.outputKw, 24);

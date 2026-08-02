@@ -11,7 +11,7 @@ Its current purpose is to demonstrate the intended Daedalus Main design language
 5. Review ambiguities as multiple-choice questions, not free-text forms.
 6. Create an editable clone of the current Twin and apply graph/spatial edits without mutating reality.
 7. Play mocked system behaviour through visible property overlays.
-8. Discard the proposed copy and return to unchanged current reality.
+8. Discard the editable clone and return to unchanged current reality.
 
 All data and visuals are mocked. The point is design understanding, not production architecture.
 
@@ -37,7 +37,7 @@ npm test
 
 - `#/main` - primary Main proof-of-concept entry point
 - `#/tighten` - Tighten Import, temporary ambiguity resolution for imported evidence.
-- `#/what-if` - Clone & Edit, editable branch and comparison. The route is retained for compatibility.
+- `#/clone` - Clone & Edit, editable branch and comparison.
 - `#/run` - Operate Twin, mocked time-based system behaviour.
 - `#/capture-demo` - separate Capture interaction demo
 
@@ -70,7 +70,7 @@ The fixture is a visual projection, not production geometry stitching. It should
 - Ambiguities should become bounded questions with explicit choices and outcomes.
 - Zoom is contextual selection and drill-down through the graphic Twin.
 - Explain is contextual to the selected object or behaviour.
-- Proposed-copy cloning preserves authoritative reality and never mutates it.
+- Clone/Edit preserves authoritative reality and never mutates it.
 - Clone/Edit operations alter graph items and preserve their spatial anchors unless the edit explicitly moves them.
 - Operate explains behaviour and bottlenecks over time; it does not recommend a product.
 - A visible node-and-edge graph is not a normal product view.
@@ -80,7 +80,7 @@ The fixture is a visual projection, not production geometry stitching. It should
 
 The intended visual direction is documented in `docs/SANDBOX_VISUAL_TARGET.md`.
 
-In short: Sandbox should evolve toward a CAD/BIM-style living Place Twin where WiFi, heating and human interaction are projections over the same captured geometry. Tighten and proposed-copy editing must become spatial/CAD-like tools, not text workflows.
+In short: Sandbox should evolve toward a CAD/BIM-style living Place Twin where WiFi, heating and human interaction are projections over the same captured geometry. Tighten and Clone/Edit must become spatial/CAD-like tools, not text workflows.
 
 ## Production Boundary
 
@@ -89,14 +89,14 @@ Nothing here changes the Constitution, Capture architecture, Contracts schemas, 
 Production ownership remains:
 
 - Capture owns capture UI and evidence collection.
-- Main owns reasoning, explanation, proposed-copy branches and behaviour playback.
+- Main owns reasoning, explanation, editable Twin clones and behaviour playback.
 - Contracts owns shared schemas.
 - Platform owns hosted services and shared infrastructure.
 - Sandbox owns disposable UX experiments.
 
 ## Files
 
-- `src/data.js` contains mocked Twin, evidence, ambiguity-review, proposed-copy and playback data.
+- `src/data.js` contains mocked Twin, evidence, ambiguity-review, editable clone and playback data.
 - `src/data.js` also contains the sanitized spatial fixture used by the visual dollhouse smoke test.
 - `src/model.js` contains pure state transitions used by tests.
 - `src/app.js` renders the disposable prototype.

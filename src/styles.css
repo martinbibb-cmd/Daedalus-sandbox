@@ -1771,7 +1771,7 @@ button:disabled {
   box-shadow: 0 0 0 5px rgba(255,159,10,.25), 0 10px 20px rgba(0,0,0,.28);
 }
 
-.proposed-copy .graphic-twin,
+.clone-copy .graphic-twin,
 .current .graphic-twin {
   min-height: 300px;
   margin-top: 12px;
@@ -1890,7 +1890,7 @@ button:disabled,
   border-color: rgba(50,215,75,.28);
 }
 
-.compare-grid .proposed-copy {
+.compare-grid .clone-copy {
   border-color: rgba(255,159,10,.36);
 }
 
