@@ -17,7 +17,7 @@ import {
   selectedReviewItem,
   startRun
 } from "../src/model.js";
-import { spatialFixture } from "../src/data.js";
+import { runTimeline, spatialFixture } from "../src/data.js";
 
 test("/main remains the Main entry route", () => {
   assert.equal(routeFor("#/main"), "/main");
@@ -209,4 +209,31 @@ test("hot-water ambiguity captures the downstream follow-up", () => {
   assert.equal(item.resolved, true);
   assert.equal(item.resolutionId, "combi-with-cylinder");
   assert.match(item.followUp, /Which taps/);
+});
+
+test("spatial routes are explicit orthogonal graph corridors, not arbitrary straight lines", () => {
+  for (const route of spatialFixture.routes) {
+    assert.ok(Array.isArray(route.points), `${route.id} needs committed route points`);
+    assert.ok(route.points.length >= 2, `${route.id} needs at least two route points`);
+    assert.ok(route.source, `${route.id} needs a source statement`);
+    assert.ok(route.uncertainty, `${route.id} needs an uncertainty boundary`);
+
+    for (let index = 1; index < route.points.length; index += 1) {
+      const [previousX, previousY] = route.points[index - 1];
+      const [nextX, nextY] = route.points[index];
+      assert.ok(
+        previousX === nextX || previousY === nextY,
+        `${route.id} segment ${index} must be orthogonal to the captured plan`
+      );
+    }
+  }
+});
+
+test("operate timeline is one coherent heating sequence projected onto one route", () => {
+  assert.ok(runTimeline.length >= 2);
+  for (const step of runTimeline) {
+    assert.equal(step.domain, "heating");
+    assert.equal(step.routeId, "primary");
+    assert.match(step.active, /heating|boiler|primary|emitter/);
+  }
 });

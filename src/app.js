@@ -496,45 +496,29 @@ function coverageLayer(layerId) {
 }
 
 function placeShell() {
-  const rooms = [
-    { id: "room-1", label: "Kitchen / plant", x: 108, y: 112, w: 344, h: 218 },
-    { id: "room-2", label: "Hall / service spine", x: 452, y: 112, w: 322, h: 218 },
-    { id: "room-3", label: "Living space", x: 108, y: 330, w: 410, h: 214 },
-    { id: "room-4", label: "Utility edge", x: 518, y: 330, w: 256, h: 214 }
-  ];
   return `
     <g class="place-shell-svg">
-      <g class="dollhouse-shadow">
-        <path d="M126 566 L802 566 L846 520 L172 520 Z"/>
-      </g>
-      ${rooms.map((room) => dollhouseRoom(room)).join("")}
-      <path class="outer-wall iso-wall-line" d="M108 112H774V544H108Z"/>
-      <path class="inner-wall iso-wall-line" d="M452 112V330H108M452 330H774M518 330V544"/>
-      <path class="opening iso-opening" d="M432 330H472M518 410V458M268 330H326"/>
-      <path class="exterior-path" d="M108 562H774"/>
-      <text class="scale-label" x="108" y="594">0m</text>
-      <path class="scale-bar" d="M142 588H302"/>
-      <text class="scale-label" x="314" y="594">4m mock scale</text>
+      <rect class="captured-extent" x="86" y="82" width="578" height="470" rx="4"/>
+      ${spatialFixture.rooms.map((room) => roomPlanRoom(room)).join("")}
+      <path class="outer-wall iso-wall-line" d="M96 92H644V532H96Z"/>
+      <path class="inner-wall iso-wall-line" d="M366 92V532M96 292H644"/>
+      <path class="service-spine" d="M300 92V532M520 92V532"/>
+      <path class="opening iso-opening" d="M268 292H326M432 292H472M520 292V330M366 438V500"/>
+      <path class="exterior-path" d="M96 562H644"/>
+      <text class="scale-label" x="96" y="594">captured ground-floor projection</text>
+      <path class="scale-bar" d="M418 588H578"/>
+      <text class="scale-label" x="590" y="594">routes follow tightened graph corridors</text>
     </g>
   `;
 }
 
-function dollhouseRoom(room) {
-  const lift = 34;
-  const depth = 22;
-  const x = room.x;
-  const y = room.y;
-  const w = room.w;
-  const h = room.h;
+function roomPlanRoom(room) {
+  const bounds = pathBounds(room.path);
   return `
-    <g class="dollhouse-room" data-room="${room.id}">
-      <path class="room-side south" d="M${x} ${y + h}H${x + w}L${x + w} ${y + h + depth}H${x}Z"/>
-      <path class="room-side east" d="M${x + w} ${y}V${y + h}L${x + w} ${y + h + depth}V${y + depth}Z"/>
-      <rect class="room-plate" x="${x}" y="${y}" width="${w}" height="${h}" rx="2"/>
-      <path class="room-wall north" d="M${x} ${y}H${x + w}V${y + lift}H${x}Z"/>
-      <path class="room-wall west" d="M${x} ${y}V${y + h}H${x + lift}V${y}Z"/>
-      <text class="room-name" x="${x + w / 2}" y="${y + h / 2 - 4}">${room.label}</text>
-      <text class="room-role" x="${x + w / 2}" y="${y + h / 2 + 16}">captured room volume</text>
+    <g class="room-plan" data-room="${room.id}">
+      <path class="room-plate" d="${room.path}"/>
+      <text class="room-name" x="${bounds.cx}" y="${bounds.cy - 8}">${room.label}</text>
+      <text class="room-role" x="${bounds.cx}" y="${bounds.cy + 13}">${room.role}</text>
     </g>
   `;
 }
@@ -543,8 +527,8 @@ function routeLayer(activeStep) {
   return `
     <g class="route-layer-svg">
       ${spatialFixture.routes.filter((route) => visibleDomain(route.domain)).map((route) => `
-        <path class="route-svg ${route.domain} ${route.id === "primary" && activeStep ? "run-active" : ""} ${route.id === "primary" && activeStep?.bottleneck ? "route-bottleneck" : ""}" d="${route.d}"/>
-        ${route.componentIds?.includes(selectedComponentId) || activeStep?.active === "primary-pipework" ? `<text class="route-text" x="${routeLabelPosition(route).x}" y="${routeLabelPosition(route).y}">${route.label}</text>` : ""}
+        <path class="route-svg ${route.domain} ${route.id === activeStep?.routeId ? "run-active" : ""} ${route.id === activeStep?.routeId && activeStep?.bottleneck ? "route-bottleneck" : ""}" d="${routePath(route)}"/>
+        ${route.componentIds?.includes(selectedComponentId) || route.id === activeStep?.routeId ? `<text class="route-text" x="${routeLabelPosition(route).x}" y="${routeLabelPosition(route).y}">${route.label}</text>` : ""}
       `).join("")}
     </g>
   `;
@@ -752,12 +736,40 @@ function formatPosition(position) {
 }
 
 function routeLabelPosition(route) {
-  const numbers = route.d.match(/-?\d+/g)?.map(Number) || [360, 310];
-  const xs = numbers.filter((_, index) => index % 2 === 0);
-  const ys = numbers.filter((_, index) => index % 2 === 1);
+  const pairs = route.points || pairsFromPath(route.d);
+  const [x = 360, y = 310] = pairs[Math.floor(pairs.length / 2)] || [];
   return {
-    x: xs[Math.floor(xs.length / 2)] || 360,
-    y: (ys[Math.floor(ys.length / 2)] || 310) - 18
+    x,
+    y: y - 18
+  };
+}
+
+function routePath(route) {
+  const points = route.points || pairsFromPath(route.d);
+  if (!points.length) return route.d || "";
+  return points.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x} ${y}`).join(" ");
+}
+
+function pairsFromPath(path) {
+  const numbers = path?.match(/-?\d+/g)?.map(Number) || [];
+  const pairs = [];
+  for (let index = 0; index < numbers.length; index += 2) {
+    pairs.push([numbers[index], numbers[index + 1]]);
+  }
+  return pairs;
+}
+
+function pathBounds(path) {
+  const pairs = pairsFromPath(path);
+  const xs = pairs.map(([x]) => x);
+  const ys = pairs.map(([, y]) => y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  return {
+    cx: (minX + maxX) / 2,
+    cy: (minY + maxY) / 2
   };
 }
 

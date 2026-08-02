@@ -345,41 +345,56 @@ export const spatialFixture = {
       id: "primary",
       domain: "heating",
       label: "Primary heat route",
+      points: [[300, 170], [300, 292], [300, 438], [210, 438]],
       d: "M300 170 L300 292 L300 438 L210 438",
       componentIds: ["boiler", "emitter"],
-      evidenceState: "candidate route"
+      evidenceState: "candidate route",
+      source: "tightened graph relationship projected onto captured room geometry",
+      uncertainty: "concealed route candidate"
     },
     {
       id: "water",
       domain: "water",
       label: "Hot/cold water evidence route",
+      points: [[158, 235], [158, 292], [300, 292], [300, 170]],
       d: "M158 235 L158 292 L300 292 L300 170",
       componentIds: ["tap", "boiler"],
-      evidenceState: "observed endpoints, inferred link"
+      evidenceState: "observed endpoints, inferred link",
+      source: "observed outlet and heat-source anchors with inferred service corridor",
+      uncertainty: "inferred concealed pipework"
     },
     {
       id: "power",
       domain: "electrical",
       label: "Electrical circuit evidence route",
-      d: "M568 170 L568 246 L326 246",
+      points: [[568, 170], [568, 292], [366, 292], [366, 246], [326, 246]],
+      d: "M568 170 L568 292 L366 292 L366 246 L326 246",
       componentIds: ["consumer-unit", "socket"],
-      evidenceState: "candidate relationship"
+      evidenceState: "candidate relationship",
+      source: "consumer-unit and socket anchors joined through circulation opening",
+      uncertainty: "circuit not confirmed"
     },
     {
       id: "network",
       domain: "network",
       label: "Broadband/network path",
-      d: "M604 142 L604 474 L310 474",
+      points: [[604, 142], [604, 292], [452, 292], [452, 330], [326, 330], [326, 474], [310, 474]],
+      d: "M604 142 L604 292 L452 292 L452 330 L326 330 L326 474 L310 474",
       componentIds: ["broadband-entry", "router"],
-      evidenceState: "candidate route corridor"
+      evidenceState: "candidate route corridor",
+      source: "communications entry and router anchors joined through doorway/service corridor",
+      uncertainty: "ONT not captured"
     },
     {
       id: "access",
       domain: "access",
       label: "Access route through captured spaces",
-      d: "M644 292 L366 292 L366 500 L96 500",
+      points: [[644, 292], [520, 292], [520, 330], [452, 330], [326, 330], [326, 500], [96, 500]],
+      d: "M644 292 L520 292 L520 330 L452 330 L326 330 L326 500 L96 500",
       componentIds: ["doorway", "threshold"],
-      evidenceState: "observed openings, threshold unresolved"
+      evidenceState: "observed openings, threshold unresolved",
+      source: "opening-to-opening circulation trace through captured rooms",
+      uncertainty: "threshold height unresolved"
     }
   ]
 };
@@ -560,35 +575,45 @@ export const runTimeline = [
     time: "00:00",
     title: "Demand starts",
     state: "Heating demand starts in the current/proposed heating system.",
+    domain: "heating",
     active: "heating-demand",
+    routeId: "primary",
     bottleneck: null
   },
   {
     time: "00:03",
     title: "Boiler fires",
     state: "The edited boiler node is active in the clone.",
+    domain: "heating",
     active: "boiler",
+    routeId: "primary",
     bottleneck: null
   },
   {
     time: "00:08",
     title: "Primary flow rises",
     state: "Primary pipework begins carrying heat to the distribution circuit.",
+    domain: "heating",
     active: "primary-pipework",
+    routeId: "primary",
     bottleneck: null
   },
   {
     time: "00:14",
     title: "Pipework constraint",
     state: "Candidate 22 mm primary pipework reaches the modelled useful delivery limit.",
+    domain: "heating",
     active: "primary-pipework",
+    routeId: "primary",
     bottleneck: "primary-pipework"
   },
   {
     time: "00:22",
     title: "Useful output plateaus",
     state: "More boiler output is not translated into useful room response without related system changes.",
+    domain: "heating",
     active: "emitter-response",
+    routeId: "primary",
     bottleneck: "controls"
   }
 ];

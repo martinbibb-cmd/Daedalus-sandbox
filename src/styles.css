@@ -3411,3 +3411,133 @@ body,
   text-anchor: middle;
   pointer-events: none;
 }
+
+/* Grounded spatial-twin correction: captured plan first, overlays second. */
+body,
+.app-shell,
+.place-shell {
+  background:
+    radial-gradient(circle at 18% 8%, rgba(59, 130, 246, .10), transparent 28rem),
+    linear-gradient(180deg, #f7f6f2 0%, #eceff4 100%) !important;
+  color: #14161a !important;
+}
+
+.topbar,
+.place-canvas-card,
+.workstation-panel,
+.instrument-panel,
+.lens-card,
+.map-legend,
+.map-popover,
+.workstation-dock article,
+.ambiguity-card,
+.spatial-review-editor,
+.relationship-panel,
+.place-context,
+.run-control-card {
+  background: rgba(255, 255, 255, .90) !important;
+  border-color: rgba(73, 87, 108, .18) !important;
+  box-shadow: 0 18px 48px rgba(48, 58, 76, .12) !important;
+}
+
+.workstation-body,
+.cad-viewport {
+  background: linear-gradient(180deg, #fbfaf6, #eef2f7) !important;
+}
+
+.cad-bg {
+  fill: #f7f5ef !important;
+}
+
+.captured-extent {
+  fill: rgba(255, 255, 255, .30);
+  stroke: rgba(28, 38, 52, .16);
+  stroke-dasharray: 9 7;
+}
+
+.room-plan {
+  filter: drop-shadow(0 16px 24px rgba(48, 58, 76, .16));
+}
+
+.room-plan .room-plate {
+  fill: rgba(255, 255, 255, .74) !important;
+  stroke: rgba(31, 42, 58, .55) !important;
+  stroke-width: 2 !important;
+}
+
+.room-plan:nth-of-type(2) .room-plate,
+.room-plan:nth-of-type(5) .room-plate {
+  fill: rgba(231, 236, 244, .78) !important;
+}
+
+.service-spine {
+  fill: none;
+  stroke: rgba(100, 116, 139, .42);
+  stroke-width: 2.5;
+  stroke-dasharray: 8 8;
+}
+
+.outer-wall,
+.inner-wall,
+.iso-wall-line {
+  fill: none !important;
+  stroke: rgba(20, 22, 26, .72) !important;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 7 !important;
+}
+
+.opening,
+.iso-opening {
+  fill: none !important;
+  stroke: #f7f5ef !important;
+  stroke-linecap: round;
+  stroke-width: 15 !important;
+}
+
+.route-svg {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-svg.heating {
+  stroke: #e35f2d !important;
+}
+
+.route-svg.water {
+  stroke: #2f80ed !important;
+}
+
+.route-svg.electrical {
+  stroke: #d9a300 !important;
+}
+
+.route-svg.network {
+  stroke: #3b82f6 !important;
+}
+
+.route-svg.access {
+  stroke: #7c3aed !important;
+}
+
+.route-svg.run-active {
+  stroke-width: 16 !important;
+  filter: drop-shadow(0 0 14px rgba(227, 95, 45, .38));
+}
+
+.route-svg.route-bottleneck {
+  stroke: #f97316 !important;
+  stroke-dasharray: 18 10;
+}
+
+.clone-overlay rect {
+  fill: rgba(255, 255, 255, .72) !important;
+  stroke: rgba(59, 130, 246, .82) !important;
+  stroke-width: 3 !important;
+}
+
+.operation-overlay rect {
+  fill: rgba(255, 255, 255, .88) !important;
+  stroke: rgba(227, 95, 45, .30) !important;
+}
