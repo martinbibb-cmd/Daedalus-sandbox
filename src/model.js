@@ -25,6 +25,8 @@ export function createInitialState() {
     reviewItems: clone(importReviewItems),
     authoritativeTwin: clone(authoritativeTwin),
     selectedPath: ["property"],
+    activeReviewId: importReviewItems.find((item) => !item.resolved)?.id || importReviewItems[0]?.id || null,
+    reviewSpatialEdits: {},
     explanationOpen: false,
     explanationMode: "plain",
     proposedTwin: null,
@@ -79,8 +81,43 @@ export function canPromote(state) {
   return state.reviewItems.every((item) => item.resolved);
 }
 
+export function selectedReviewItem(state) {
+  return state.reviewItems.find((item) => item.id === state.activeReviewId)
+    || state.reviewItems.find((item) => !item.resolved)
+    || state.reviewItems[0]
+    || null;
+}
+
+export function reviewAnchor(state, itemId) {
+  const item = state.reviewItems.find((candidate) => candidate.id === itemId);
+  const edit = state.reviewSpatialEdits[itemId];
+  return edit || clone(item?.anchor || { x: 0, y: 0, z: 0, unit: "canvas", reference: "unlocated review item" });
+}
+
+export function selectReviewItem(state, itemId) {
+  const next = clone(state);
+  if (next.reviewItems.some((item) => item.id === itemId)) {
+    next.activeReviewId = itemId;
+  }
+  return next;
+}
+
+export function adjustReviewAnchor(state, itemId, delta = {}) {
+  const next = selectReviewItem(state, itemId);
+  const current = reviewAnchor(next, itemId);
+  next.reviewSpatialEdits[itemId] = {
+    ...current,
+    x: roundCoordinate(current.x + Number(delta.x || 0)),
+    y: roundCoordinate(current.y + Number(delta.y || 0)),
+    z: roundCoordinate(current.z + Number(delta.z || 0)),
+    reference: `${current.reference} · manually adjusted in Tighten`
+  };
+  return next;
+}
+
 export function resolveTightenItem(state, itemId, resolutionId = "resolve") {
   const next = clone(state);
+  next.activeReviewId = itemId;
   next.reviewItems = next.reviewItems.map((item) => {
     if (item.id !== itemId) return item;
     const resolution = item.resolutions?.find((option) => option.id === resolutionId);
@@ -94,6 +131,10 @@ export function resolveTightenItem(state, itemId, resolutionId = "resolve") {
     };
   });
   return next;
+}
+
+function roundCoordinate(value) {
+  return Math.round(value * 1000) / 1000;
 }
 
 export function promoteImport(state) {

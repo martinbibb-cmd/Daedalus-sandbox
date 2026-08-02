@@ -407,6 +407,8 @@ export const importReviewItems = [
     type: "confirmed",
     title: "Boiler photo attached",
     detail: "Observed heat-source photo is present and linked to RoomPlan context.",
+    targetId: "boiler",
+    anchor: { x: 300, y: 170, z: 0, unit: "canvas", reference: "boiler graph node" },
     resolved: true
   },
   {
@@ -415,6 +417,8 @@ export const importReviewItems = [
     title: "Hot-water source ambiguity",
     question: "Your notes mention both a combination boiler and a cylinder. Which state should the Twin preserve?",
     detail: "This must resolve as a bounded choice. Do not promote both as confirmed truth.",
+    targetId: "boiler",
+    anchor: { x: 300, y: 170, z: 0, unit: "canvas", reference: "hot-water source graph node" },
     resolved: false,
     resolutions: [
       {
@@ -441,6 +445,8 @@ export const importReviewItems = [
     title: "Broadband route without ONT",
     question: "You tagged a communications route but no fibre ONT was captured. Please confirm this is not a fibre connection.",
     detail: "Networking evidence needs a clear boundary between broadband entry, router, ONT and inferred route.",
+    targetId: "broadband-entry",
+    anchor: { x: 604, y: 142, z: 0, unit: "canvas", reference: "communications entry graph node" },
     resolved: false,
     resolutions: [
       {
@@ -466,6 +472,8 @@ export const importReviewItems = [
     title: "Occupancy and usage missing",
     question: "No transcript answer exists for occupancy, usage or performance context. How should Main carry this into the Twin?",
     detail: "The Home layer must not invent usage facts. It can preserve unknowns or create a follow-up question.",
+    targetId: "room-3",
+    anchor: { x: 286, y: 444, z: 0, unit: "canvas", reference: "living-space room context" },
     resolved: false,
     resolutions: [
       {
@@ -484,8 +492,10 @@ export const importReviewItems = [
     id: "conflict-boiler-space",
     type: "conflict",
     title: "Boiler clearance conflicts with cupboard geometry",
-    question: "The proposed boiler clearance intersects captured cupboard geometry. Which evidence boundary should remain authoritative?",
-    detail: "Proposed object evidence conflicts with captured wall/cupboard geometry.",
+    question: "The clone boiler clearance intersects captured cupboard geometry. Which evidence boundary should remain authoritative?",
+    detail: "Clone object evidence conflicts with captured wall/cupboard geometry.",
+    targetId: "boiler",
+    anchor: { x: 300, y: 170, z: 0, unit: "canvas", reference: "boiler clearance volume" },
     resolved: false,
     resolutions: [
       {

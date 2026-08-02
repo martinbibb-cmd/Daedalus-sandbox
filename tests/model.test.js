@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  adjustReviewAnchor,
   advanceRun,
   applyBoilerOutputChange,
   canPromote,
@@ -8,9 +9,12 @@ import {
   createInitialState,
   discardEditableClone,
   promoteImport,
+  reviewAnchor,
   resetRun,
   resolveTightenItem,
   routeFor,
+  selectReviewItem,
+  selectedReviewItem,
   startRun
 } from "../src/model.js";
 import { spatialFixture } from "../src/data.js";
@@ -139,6 +143,54 @@ test("review records the chosen ambiguity resolution rather than only confirming
   assert.equal(item.resolved, true);
   assert.equal(item.resolutionId, "mark-unknown");
   assert.match(item.action, /explicit unknown/);
+});
+
+test("review starts on a located unresolved ambiguity", () => {
+  const state = createInitialState();
+  const item = selectedReviewItem(state);
+  const anchor = reviewAnchor(state, item.id);
+
+  assert.equal(item.id, "candidate-cylinder");
+  assert.equal(item.targetId, "boiler");
+  assert.deepEqual(anchor, {
+    x: 300,
+    y: 170,
+    z: 0,
+    unit: "canvas",
+    reference: "hot-water source graph node"
+  });
+});
+
+test("review selection focuses a different graph ambiguity", () => {
+  const state = selectReviewItem(createInitialState(), "network-no-ont");
+  const item = selectedReviewItem(state);
+  const anchor = reviewAnchor(state, item.id);
+
+  assert.equal(item.id, "network-no-ont");
+  assert.equal(item.targetId, "broadband-entry");
+  assert.equal(anchor.x, 604);
+  assert.equal(anchor.y, 142);
+});
+
+test("manual Tighten position edits are separate from captured review anchors", () => {
+  const original = createInitialState();
+  const edited = adjustReviewAnchor(original, "network-no-ont", { x: 12, y: -6, z: 0.25 });
+  const originalAnchor = original.reviewItems.find((item) => item.id === "network-no-ont").anchor;
+  const editedAnchor = reviewAnchor(edited, "network-no-ont");
+
+  assert.deepEqual(originalAnchor, {
+    x: 604,
+    y: 142,
+    z: 0,
+    unit: "canvas",
+    reference: "communications entry graph node"
+  });
+  assert.deepEqual(edited.reviewItems.find((item) => item.id === "network-no-ont").anchor, originalAnchor);
+  assert.equal(edited.activeReviewId, "network-no-ont");
+  assert.equal(editedAnchor.x, 616);
+  assert.equal(editedAnchor.y, 136);
+  assert.equal(editedAnchor.z, 0.25);
+  assert.match(editedAnchor.reference, /manually adjusted in Tighten/);
 });
 
 test("review can preserve fibre ambiguity as a follow-up question", () => {

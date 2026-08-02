@@ -3277,3 +3277,137 @@ body,
   fill: rgba(255, 255, 255, .86) !important;
   stroke: rgba(82, 94, 112, .22) !important;
 }
+
+.ambiguity-card.active {
+  border-color: rgba(59, 130, 246, .72) !important;
+  background: rgba(232, 240, 252, .92) !important;
+  box-shadow: inset 4px 0 0 rgba(59, 130, 246, .78), 0 18px 46px rgba(47, 58, 76, .12);
+}
+
+.ambiguity-card.active h3,
+.ambiguity-card h3 {
+  color: #14161a !important;
+}
+
+.ambiguity-card > strong,
+.spatial-review-editor h3 {
+  color: #14161a;
+}
+
+.micro-link {
+  justify-self: start;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid rgba(59, 130, 246, .55);
+  border-radius: 0;
+  padding: 0;
+  color: #2563eb;
+  background: transparent;
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.spatial-review-editor {
+  display: grid;
+  gap: .85rem;
+  margin: .35rem 0 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(59, 130, 246, .28);
+  border-radius: 18px;
+  background:
+    linear-gradient(rgba(59, 130, 246, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, .05) 1px, transparent 1px),
+    rgba(255, 255, 255, .84);
+  background-size: 22px 22px;
+  box-shadow: 0 20px 56px rgba(47, 58, 76, .14);
+}
+
+.spatial-review-editor p {
+  margin: 0;
+}
+
+.spatial-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .55rem;
+}
+
+.spatial-edit-grid span {
+  min-height: 58px;
+  padding: .65rem;
+  border: 1px solid rgba(84, 95, 112, .18);
+  border-radius: 12px;
+  color: #172033;
+  background: rgba(248, 250, 252, .88);
+  font-weight: 850;
+}
+
+.spatial-edit-grid span:last-child {
+  grid-column: 1 / -1;
+}
+
+.spatial-edit-grid b {
+  display: block;
+  margin-bottom: .25rem;
+  color: #64748b;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.cad-nudge-pad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .45rem;
+  max-width: 320px;
+}
+
+.cad-nudge-pad button {
+  min-height: 42px;
+  border: 1px solid rgba(37, 99, 235, .38);
+  border-radius: 12px;
+  color: #1e3a8a;
+  background: rgba(219, 234, 254, .78);
+  font-weight: 900;
+}
+
+.cad-nudge-pad button:first-child,
+.cad-nudge-pad button:last-child {
+  grid-column: 2;
+}
+
+.cad-nudge-pad button:nth-child(2) {
+  grid-column: 1;
+}
+
+.cad-nudge-pad button:nth-child(3) {
+  grid-column: 3;
+}
+
+.review-pin {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.review-pin circle {
+  fill: rgba(255, 159, 10, .92);
+  stroke: rgba(255, 255, 255, .96);
+  stroke-width: 3;
+}
+
+.review-pin.active circle {
+  fill: #2563eb;
+  stroke: #f8fafc;
+  stroke-width: 5;
+  filter: drop-shadow(0 0 12px rgba(37, 99, 235, .42));
+}
+
+.review-pin text {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  text-anchor: middle;
+  pointer-events: none;
+}

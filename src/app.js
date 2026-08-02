@@ -7,6 +7,7 @@ import {
 } from "./data.js";
 import {
   advanceRun,
+  adjustReviewAnchor,
   applyBoilerOutputChange,
   canPromote,
   createEditableClone,
@@ -15,8 +16,11 @@ import {
   pauseRun,
   promoteImport,
   resetRun,
+  reviewAnchor,
   resolveTightenItem,
   routeFor,
+  selectReviewItem,
+  selectedReviewItem,
   startRun
 } from "./model.js";
 
@@ -102,6 +106,18 @@ window.addEventListener("beforeunload", () => {
 
 function handleAction(action, value, resolution) {
   if (action === "resolve") state = resolveTightenItem(state, value, resolution);
+  if (action === "select-review") {
+    state = selectReviewItem(state, value);
+    const item = selectedReviewItem(state);
+    if (item?.targetId && state.authoritativeTwin.nodes[item.targetId]) {
+      state = { ...state, selectedPath: ["property", item.targetId] };
+    }
+  }
+  if (action === "nudge-review") {
+    const [dx, dy, dz] = (value || "0,0,0").split(",").map(Number);
+    const itemId = resolution;
+    state = adjustReviewAnchor(state, itemId, { x: dx, y: dy, z: dz });
+  }
   if (action === "promote") {
     const result = promoteImport(state);
     state = result.state;
@@ -241,6 +257,7 @@ function mainView() {
 
 function tightenView() {
   const blocked = !canPromote(state);
+  const activeReview = selectedReviewItem(state);
   return shell(`
     ${modeIntro("tighten")}
     <section class="place-workbench">
@@ -252,6 +269,7 @@ function tightenView() {
         <div class="tighten-questions">
           ${state.reviewItems.map(reviewItem).join("")}
         </div>
+        ${activeReview ? spatialReviewEditor(activeReview) : ""}
         <button class="primary wide" data-action="promote" ${blocked ? "disabled" : ""}>Promote reviewed import</button>
       </aside>
     </section>
@@ -555,7 +573,7 @@ function tightenPins(mode) {
       ${state.reviewItems.filter((item) => !item.resolved).map((item, index) => {
         const point = reviewPoint(item, index);
         return `
-          <g class="review-pin ${item.type}" transform="translate(${point.x} ${point.y})">
+          <g class="review-pin ${item.type} ${item.id === state.activeReviewId ? "active" : ""}" data-action="select-review" data-value="${item.id}" transform="translate(${point.x} ${point.y})">
             <circle r="13"/>
             <text x="0" y="5">${index + 1}</text>
           </g>
@@ -598,13 +616,8 @@ function runComponentIds(step) {
 }
 
 function reviewPoint(item, index) {
-  const map = {
-    "candidate-cylinder": { x: 300, y: 170 },
-    "network-no-ont": { x: 604, y: 142 },
-    "unknown-occupancy": { x: 286, y: 444 },
-    "conflict-boiler-space": { x: 300, y: 170 }
-  };
-  return map[item.id] || { x: 150 + index * 52, y: 92 };
+  const point = reviewAnchor(state, item.id);
+  return point.x || point.y ? point : { x: 150 + index * 52, y: 92, z: 0 };
 }
 
 function componentShape(component) {
@@ -657,16 +670,41 @@ function relationshipPanel(component) {
 function reviewItem(item) {
   const point = reviewPoint(item, 0);
   return `
-    <article class="ambiguity-card ${item.type} ${item.resolved ? "resolved" : ""}">
+    <article class="ambiguity-card ${item.type} ${item.resolved ? "resolved" : ""} ${item.id === state.activeReviewId ? "active" : ""}">
       <span>${item.resolved ? "resolved" : item.type}</span>
       <strong>${item.title}</strong>
-      <p class="xyz-readout">XYZ ${point.x}, ${point.y}, 0.00 canvas · target ${item.id}</p>
+      <p class="xyz-readout">XYZ ${point.x}, ${point.y}, ${point.z ?? 0} canvas · target ${item.targetId || item.id}</p>
       ${item.question ? `<h3>${item.question}</h3>` : ""}
       <p>${item.detail}</p>
       ${item.action ? `<em>${item.action}</em>` : ""}
       ${item.followUp ? `<q>${item.followUp}</q>` : ""}
+      <button class="micro-link" data-action="select-review" data-value="${item.id}">Focus on geometry</button>
       ${item.resolved ? "" : resolutionActions(item)}
     </article>
+  `;
+}
+
+function spatialReviewEditor(item) {
+  const point = reviewPoint(item, 0);
+  return `
+    <section class="spatial-review-editor">
+      <p class="eyebrow">CAD-like review target</p>
+      <h3>${item.title}</h3>
+      <p>This is the shape Tighten should take in Main: a bounded question tied to a located graph item, with manual spatial adjustment when direct evidence is missing.</p>
+      <div class="spatial-edit-grid">
+        <span><b>Target</b>${item.targetId || "unlocated"}</span>
+        <span><b>X</b>${point.x}</span>
+        <span><b>Y</b>${point.y}</span>
+        <span><b>Z</b>${point.z ?? 0}</span>
+        <span><b>Ref</b>${point.reference || item.anchor?.reference || "sandbox canvas"}</span>
+      </div>
+      <div class="cad-nudge-pad" aria-label="Manual spatial edit controls">
+        <button data-action="nudge-review" data-resolution="${item.id}" data-value="0,-12,0">Up</button>
+        <button data-action="nudge-review" data-resolution="${item.id}" data-value="-12,0,0">Left</button>
+        <button data-action="nudge-review" data-resolution="${item.id}" data-value="12,0,0">Right</button>
+        <button data-action="nudge-review" data-resolution="${item.id}" data-value="0,12,0">Down</button>
+      </div>
+    </section>
   `;
 }
 
