@@ -1,7 +1,7 @@
 export const canonicalBuildPlanPageUrl =
   "https://github.com/martinbibb-cmd/Daedalus-contracts/blob/main/DAEDALUS_BUILD_PLAN.md";
 
-export const publishedBuildPlanCommit = "b906afa";
+export const publishedBuildPlanCommit = "4402050";
 
 export const publishedBuildPlanProjection = `# Daedalus Build Plan
 
@@ -9,7 +9,7 @@ Status: Sandbox read-only projection
 
 Authority: Daedalus-contracts/DAEDALUS_BUILD_PLAN.md
 
-Last aligned canonical commit: \`b906afa\` on 2026-08-05
+Last aligned canonical commit: \`4402050\` on 2026-08-05
 
 ## Governing order
 
@@ -40,36 +40,30 @@ Reality precedes explanation. Daedalus must never explain what has not first bee
 - Current Twin refinements and clone change sets are version-bound and traceable.
 - Place contexts and multi-domain component projections remain non-authoritative.
 - Signed-device multi-domain evidence preserves room context, evidence, Basin and Tap semantics, and domain projections through Platform into Main.
+- Main executes a bounded Working System path through the existing kernel and preserves observed evidence, physical-model output, inferred service audits, assumptions, unknowns, and unsupported boundaries.
+- Contracts 1.2.0 defines the provider-neutral Run shape and Main validates its output against it.
 
-## Current tranche: Working System demonstration
+## Completed gate: Working System and Run contract
 
-1. Demonstrate a complete deterministic System Twin execution in Main from contract-backed Property/Twin evidence, components, relationships, controls, services, and explicit unknowns.
-2. Run the physical or service model before building an explanation layer.
-3. Expose model inputs, state transitions, calculated outputs, provenance, assumptions, and unsupported boundaries.
-4. Keep observed, inferred, calculated, and simulated state separate.
-5. A Run must not overwrite the Current Twin or turn a scenario into reality.
-6. Reuse and consolidate the existing Main reasoning kernel and solvers. Do not create a second modelling subsystem.
+1. Main runs boiler to pump to open control valve to distribution pipe to radiator and zone service.
+2. The observed boiler value remains evidence; solver-produced physical states are scientifically modelled; topology and service conclusions remain inferred; unavailable inputs remain unknown.
+3. Modelled output uses real values and explicit mathematical physics wherever evidence permits.
+4. The Run is immutable, non-authoritative, cannot overwrite the Current Twin, and generates no explanation.
+5. Structural service success is not published as grounded success unless the physical model reaches the declared endpoint.
 
-## Following tranche: Behaviour and Run contract extraction
+## Current tranche: Grounded explanation and correction
 
-- Extract only provider-neutral state snapshots, timeline events, provenance, and validation boundaries proven necessary by the Working System demonstration.
-- Keep deterministic model output separate from rendering and explanation state.
-- Require confidence, assumptions, provenance, and unsupported-model boundaries.
-- Do not encode recommendations, product ranking, quotations, or optimisation.
-
-## Later tranche: Grounded explanation and correction
-
-- Build explanations only from demonstrated Working System inputs, traces, transitions, and outputs.
+- Build explanations only from the demonstrated Working System inputs, events, transitions, modelled outputs, unknowns, and unsupported boundaries.
 - Distinguish observations, customer statements, surveyor statements, measurements, calculations, assumptions, model inferences, and expert corrections.
 - Turn bounded corrections into synthetic or minimised regression candidates.
 - Generated language remains downstream of Reality to Analysis to Explanation and can never become Twin truth.
 
 ## Hard boundaries
 
-- Capture observes reality; it does not analyse, simulate, score, rank, recommend, price, or select products.
-- Contracts defines declarative reality and validation; it does not simulate.
-- Platform stores and exposes canonical state; it does not own reasoning.
-- Main owns reasoning and physical or service models; it must preserve uncertainty and cannot recommend or rank choices.
+- Capture observes reality; it does not own model reasoning, score, rank, recommend, price, or select products.
+- Contracts defines declarative reality, Run boundaries, and validation; it does not execute scientific models.
+- Platform stores and exposes canonical state; it does not own reasoning or model execution.
+- Main owns reasoning and scientific physical/service models; it must preserve uncertainty and cannot recommend or rank choices.
 - Sandbox is a disposable visual projection and is not architectural authority.
 
 ## Deferred explicitly
@@ -82,7 +76,7 @@ Reality precedes explanation. Daedalus must never explain what has not first bee
 
 ## Current operational gate
 
-The next gate is one complete deterministic Working System demonstration in Main. Behaviour and Run contract extraction, visual projection, and grounded explanation follow demonstrated model behaviour.
+The current gate is grounded explanation of the completed Working System Run. Explanation must show what the scientific model demonstrated and must not replace, invent, or overwrite the model or Twin.
 `;
 
 export function renderBuildPlanMarkdown(markdown) {

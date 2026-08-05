@@ -7,18 +7,17 @@ import {
 } from "../src/build-plan.js";
 
 test("published projection is pinned to the current Contracts authority", () => {
-  assert.equal(publishedBuildPlanCommit, "b906afa");
+  assert.equal(publishedBuildPlanCommit, "4402050");
   assert.match(publishedBuildPlanProjection, /Authority: Daedalus-contracts/);
 });
 
-test("working system remains ahead of contracts and explanation", () => {
-  const workingSystem = publishedBuildPlanProjection.indexOf("Current tranche: Working System demonstration");
-  const runContracts = publishedBuildPlanProjection.indexOf("Following tranche: Behaviour and Run contract extraction");
-  const explanation = publishedBuildPlanProjection.indexOf("Later tranche: Grounded explanation and correction");
+test("working system and Run contracts remain ahead of explanation", () => {
+  const workingSystem = publishedBuildPlanProjection.indexOf("Completed gate: Working System and Run contract");
+  const explanation = publishedBuildPlanProjection.indexOf("Current tranche: Grounded explanation and correction");
 
   assert.ok(workingSystem >= 0);
-  assert.ok(runContracts > workingSystem);
-  assert.ok(explanation > runContracts);
+  assert.ok(explanation > workingSystem);
+  assert.match(publishedBuildPlanProjection, /scientifically modelled/);
 });
 
 test("build plan markdown renders headings, lists, and code safely", () => {
