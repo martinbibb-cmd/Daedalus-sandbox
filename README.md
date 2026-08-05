@@ -40,6 +40,7 @@ npm test
 - `#/clone` - Clone & Edit, editable branch and comparison.
 - `#/run` - Operate Twin, mocked time-based system behaviour.
 - `#/capture-demo` - separate Capture interaction demo
+- `#/build-plan` - read-only published projection pinned to its authoritative Contracts commit
 
 Older links such as `#/home`, `#/command`, `#/reasoning`, and `#/scenarios` enter `#/main`.
 

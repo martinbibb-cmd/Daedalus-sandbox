@@ -23,6 +23,12 @@ import {
   selectedReviewItem,
   startRun
 } from "./model.js";
+import {
+  canonicalBuildPlanPageUrl,
+  publishedBuildPlanCommit,
+  publishedBuildPlanProjection,
+  renderBuildPlanMarkdown
+} from "./build-plan.js";
 
 const app = document.querySelector("#app");
 let state = createInitialState();
@@ -35,7 +41,8 @@ const routes = [
   ["Tighten", "/tighten"],
   ["Clone", "/clone"],
   ["Operate", "/run"],
-  ["Capture", "/capture-demo"]
+  ["Capture", "/capture-demo"],
+  ["Plan", "/build-plan"]
 ];
 
 function currentRoute() {
@@ -60,6 +67,7 @@ function icon(name) {
     thermometer: "M10 14.5V5a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0Z",
     note: "M5 4h11l3 3v13H5V4Zm10 0v4h4",
     evidence: "M5 5h14v14H5V5Zm3 4h8M8 13h8M8 17h5",
+    plan: "M6 3h9l3 3v15H6V3Zm9 0v4h4M9 11h6M9 15h6M9 19h4",
     explain: "M12 17h.01M9.5 9a2.5 2.5 0 1 1 3.2 2.4c-.5.2-.7.6-.7 1.1v.5"
   };
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.home}"/></svg>`;
@@ -163,13 +171,15 @@ function shell(content) {
           <p class="eyebrow">Daedalus Main sandbox</p>
           <h1>${titleFor(active)}</h1>
         </div>
-        <a class="pill" ${link("/capture-demo")}>Capture demo</a>
+        ${active === "/build-plan"
+          ? `<a class="pill" href="${canonicalBuildPlanPageUrl}" target="_blank" rel="noreferrer">Open authority</a>`
+          : `<a class="pill" ${link("/build-plan")}>Build plan</a>`}
       </header>
       ${content}
       <nav class="tabbar">
         ${routes.map(([label, route]) => `
           <a ${link(route)} class="${active === route ? "active" : ""}">
-            ${icon(route === "/tighten" ? "tighten" : route === "/clone" ? "clone" : route === "/run" ? "operate" : route === "/capture-demo" ? "capture" : "home")}
+            ${icon(route === "/tighten" ? "tighten" : route === "/clone" ? "clone" : route === "/run" ? "operate" : route === "/capture-demo" ? "capture" : route === "/build-plan" ? "plan" : "home")}
             <span>${label}</span>
           </a>
         `).join("")}
@@ -184,7 +194,8 @@ function titleFor(route) {
     "/tighten": "Tighten Import",
     "/clone": "Clone & Edit",
     "/run": "Operate Twin",
-    "/capture-demo": "Capture Demo"
+    "/capture-demo": "Capture Demo",
+    "/build-plan": "Approved Build Plan"
   }[route] || "Living Place Twin";
 }
 
@@ -813,16 +824,41 @@ function captureDemoView() {
   `);
 }
 
+function buildPlanView() {
+  return shell(`
+    <section class="build-plan-intro">
+      <div>
+        <p class="eyebrow">Read-only programme authority</p>
+        <h2>Current approved Daedalus plan</h2>
+        <p>This read-only projection is aligned to canonical Contracts commit <code>${publishedBuildPlanCommit}</code>. Sandbox does not own or edit the plan.</p>
+      </div>
+      <span class="authority-badge">Contracts authority</span>
+    </section>
+    <article class="build-plan-document" id="build-plan-document" aria-live="polite">
+      <p class="build-plan-loading">Loading the published plan projection…</p>
+    </article>
+  `);
+}
+
+function loadBuildPlan() {
+  const target = document.querySelector("#build-plan-document");
+  if (!target) return;
+  target.innerHTML = renderBuildPlanMarkdown(publishedBuildPlanProjection);
+}
+
 function render() {
   const views = {
     "/main": mainView,
     "/tighten": tightenView,
     "/clone": cloneView,
     "/run": runView,
-    "/capture-demo": captureDemoView
+    "/capture-demo": captureDemoView,
+    "/build-plan": buildPlanView
   };
-  app.innerHTML = (views[currentRoute()] || mainView)();
+  const route = currentRoute();
+  app.innerHTML = (views[route] || mainView)();
   app.classList.add("ready");
+  if (route === "/build-plan") loadBuildPlan();
 }
 
 render();

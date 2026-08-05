@@ -25,6 +25,7 @@ test("/main remains the Main entry route", () => {
   assert.equal(routeFor("#/twin"), "/main");
   assert.equal(routeFor("#/clone"), "/clone");
   assert.equal(routeFor("#/what-if"), "/clone");
+  assert.equal(routeFor("#/build-plan"), "/build-plan");
   assert.equal(routeFor(""), "/main");
 });
 
