@@ -1,7 +1,7 @@
 export const canonicalBuildPlanPageUrl =
   "https://github.com/martinbibb-cmd/Daedalus-contracts/blob/main/DAEDALUS_BUILD_PLAN.md";
 
-export const publishedBuildPlanCommit = "4402050";
+export const publishedBuildPlanCommit = "64c3302";
 
 export const publishedBuildPlanProjection = `# Daedalus Build Plan
 
@@ -9,13 +9,13 @@ Status: Sandbox read-only projection
 
 Authority: Daedalus-contracts/DAEDALUS_BUILD_PLAN.md
 
-Last aligned canonical commit: \`4402050\` on 2026-08-05
+Last aligned canonical commit: \`64c3302\` on 2026-08-06
 
 ## Governing order
 
 - Reality evidence
-- Deterministic Working System and Run demonstration
-- Behaviour and Run contract extraction from proven runtime needs
+- Established scientific model integration and Working System demonstration
+- Run contract adoption around proven runtime needs
 - Grounded explanation of demonstrated inputs, traces, transitions, and outputs
 
 Reality precedes explanation. Daedalus must never explain what has not first been modelled.
@@ -40,23 +40,26 @@ Reality precedes explanation. Daedalus must never explain what has not first bee
 - Current Twin refinements and clone change sets are version-bound and traceable.
 - Place contexts and multi-domain component projections remain non-authoritative.
 - Signed-device multi-domain evidence preserves room context, evidence, Basin and Tap semantics, and domain projections through Platform into Main.
-- Main executes a bounded Working System path through the existing kernel and preserves observed evidence, physical-model output, inferred service audits, assumptions, unknowns, and unsupported boundaries.
+- Main contains an established model estate spanning hydraulic, thermal, storage, demand, control, service, and solver orchestration logic.
+- Main executes one bounded Working System path through part of that kernel and preserves observed evidence, a modelled transport output, inferred service audits, assumptions, unknowns, and unsupported boundaries.
 - Contracts 1.2.0 defines the provider-neutral Run shape and Main validates its output against it.
 
-## Completed gate: Working System and Run contract
+## Completed foundation: bounded execution and Run contract
 
 1. Main runs boiler to pump to open control valve to distribution pipe to radiator and zone service.
 2. The observed boiler value remains evidence; solver-produced physical states are scientifically modelled; topology and service conclusions remain inferred; unavailable inputs remain unknown.
-3. Modelled output uses real values and explicit mathematical physics wherever evidence permits.
+3. Modelled output must use real values and explicit mathematical physics wherever evidence permits.
 4. The Run is immutable, non-authoritative, cannot overwrite the Current Twin, and generates no explanation.
 5. Structural service success is not published as grounded success unless the physical model reaches the declared endpoint.
+6. This foundation does not demonstrate or replace the full pre-existing scientific model estate.
 
-## Current tranche: Grounded explanation and correction
+## Current tranche: Existing scientific model integration
 
-- Build explanations only from the demonstrated Working System inputs, events, transitions, modelled outputs, unknowns, and unsupported boundaries.
-- Distinguish observations, customer statements, surveyor statements, measurements, calculations, assumptions, model inferences, and expert corrections.
-- Turn bounded corrections into synthetic or minimised regression candidates.
-- Generated language remains downstream of Reality to Analysis to Explanation and can never become Twin truth.
+- Inventory and use the established model logic before adding a parallel model path.
+- Connect the approved Working System demonstration to the applicable hydraulic, thermal, storage, demand, control, service, and orchestration models.
+- Prefer measured or otherwise observed real values and expose equations, units, assumptions, uncertainty, applicability limits, and unsupported boundaries.
+- Add model logic only when an end-to-end demonstration proves a genuine gap.
+- Expand grounded explanation only after the relevant models produce demonstrated results through the Run boundary.
 
 ## Hard boundaries
 
@@ -76,7 +79,7 @@ Reality precedes explanation. Daedalus must never explain what has not first bee
 
 ## Current operational gate
 
-The current gate is grounded explanation of the completed Working System Run. Explanation must show what the scientific model demonstrated and must not replace, invent, or overwrite the model or Twin.
+The current gate is integration and end-to-end demonstration of the applicable established scientific models through the Run boundary. The bounded transport Run is supporting infrastructure, not model-completion evidence. Grounded explanation follows the model gate.
 `;
 
 export function renderBuildPlanMarkdown(markdown) {
