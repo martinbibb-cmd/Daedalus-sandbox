@@ -1,7 +1,7 @@
 export const canonicalBuildPlanPageUrl =
   "https://github.com/martinbibb-cmd/Daedalus-contracts/blob/main/DAEDALUS_BUILD_PLAN.md";
 
-export const publishedBuildPlanCommit = "64c3302";
+export const publishedBuildPlanCommit = "27adae9";
 
 export const publishedBuildPlanProjection = `# Daedalus Build Plan
 
@@ -9,7 +9,7 @@ Status: Sandbox read-only projection
 
 Authority: Daedalus-contracts/DAEDALUS_BUILD_PLAN.md
 
-Last aligned canonical commit: \`64c3302\` on 2026-08-06
+Last aligned canonical commit: \`27adae9\` on 2026-08-06
 
 ## Governing order
 
@@ -30,6 +30,15 @@ Reality precedes explanation. Daedalus must never explain what has not first bee
 - Main imports, validates, models, runs, and later explains the Twin.
 - AI may improve readability only. It is not a source of truth.
 - Users, billing, permissions, sync, and revenue models remain deferred.
+
+## Evidence to spatial model architecture
+
+1. Capture gathers as much honest, attributable information as device sensors, approved external instruments, media, transcripts, manuals and direct observations can provide.
+2. Main maps that evidence into typed system graphs rooted in the Property and Current Twin.
+3. Main executes the applicable mathematical and physical models over graph components, ports, relationships, boundaries, controls and state.
+4. The graph is registered to the captured 3D frame and rendered as a spatial Twin projection. The graphic view communicates the model; it is not a separate truth store.
+5. This path applies to heating, cooling, water performance, Wi-Fi signal and bandwidth, and sound dissipation.
+6. Missing evidence remains visibly unknown. Capture does not invent model inputs and Main does not manufacture measurements.
 
 ## Current verified baseline
 
@@ -60,6 +69,7 @@ Reality precedes explanation. Daedalus must never explain what has not first bee
 - Prefer measured or otherwise observed real values and expose equations, units, assumptions, uncertainty, applicability limits, and unsupported boundaries.
 - Add model logic only when an end-to-end demonstration proves a genuine gap.
 - Expand grounded explanation only after the relevant models produce demonstrated results through the Run boundary.
+- Keep space heating as the first integration slice, then use this same evidence to graph to model to spatial-projection path for each subsequent approved system model.
 
 ## Hard boundaries
 

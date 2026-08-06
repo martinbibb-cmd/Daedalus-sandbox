@@ -7,7 +7,7 @@ import {
 } from "../src/build-plan.js";
 
 test("published projection is pinned to the current Contracts authority", () => {
-  assert.equal(publishedBuildPlanCommit, "64c3302");
+  assert.equal(publishedBuildPlanCommit, "27adae9");
   assert.match(publishedBuildPlanProjection, /Authority: Daedalus-contracts/);
 });
 
@@ -19,6 +19,8 @@ test("established scientific models remain ahead of explanation", () => {
   assert.ok(explanation > workingSystem);
   assert.match(publishedBuildPlanProjection, /scientifically modelled/);
   assert.match(publishedBuildPlanProjection, /pre-existing scientific model estate/);
+  assert.match(publishedBuildPlanProjection, /Wi-Fi signal and bandwidth/);
+  assert.match(publishedBuildPlanProjection, /captured 3D frame/);
 });
 
 test("build plan markdown renders headings, lists, and code safely", () => {
